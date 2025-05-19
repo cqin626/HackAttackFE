@@ -33,6 +33,16 @@ const Navbar = () => {
               About
             </Link>
           </li>
+          {/* New Jobs Nav Link */}
+          <li className="nav-item">
+            <Link
+              className="nav-link text-white"
+              to="/jobs"
+              onClick={toggleSidebar}
+            >
+              Jobs
+            </Link>
+          </li>
         </ul>
       </div>
 
