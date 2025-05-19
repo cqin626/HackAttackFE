@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { getAllJobs } from "../services/jobService";
+import { getAllJobs, deleteJob } from "../services/jobService";
 import type { Job } from "../models/Job";
 import Navbar from "../components/Navbar";
+import Button from "../components/Button";
+import type { AxiosError } from "axios";
+import toast from 'react-hot-toast';
+
+type ErrorResponse = {
+  message: string;
+};
 
 const Home: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -12,7 +19,7 @@ const Home: React.FC = () => {
     const fetchJobs = async () => {
       try {
         const data = await getAllJobs();
-        setJobs(data);
+        setJobs(data.jobs);
       } catch {
         setError("Failed to load jobs");
       } finally {
@@ -49,6 +56,33 @@ const Home: React.FC = () => {
     );
   }
 
+  const onEditJobClick = async (id: string) => {
+    console.log("edit " + id);
+  }
+
+  const onDeleteJobClick = async (job: Job) => {
+    if (!confirm(`Are you sure you want to delete ${job.title}?`)) return;
+
+    setLoading(true);
+
+    try {
+      console.log(job._id);
+      const response = await deleteJob(job._id);
+      console.log(response);
+      toast.success(`Deleted job "${job.title}" successfully.`);
+      
+      getAllJobs().then(data => setJobs(data.jobs));
+
+    } catch (e: unknown) {
+      const error = e as AxiosError<ErrorResponse>;
+      const message = error.response?.data?.message || "Failed to delete job (unknown error)";
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   return (
     <>
       <Navbar></Navbar>
@@ -78,7 +112,11 @@ const Home: React.FC = () => {
                   </p>
                 </div>
                 <div className="card-footer text-muted">
-                  Posted on: {formatDate(job.createdAt)}
+                  <div>Posted on: {formatDate(job.createdAt)}</div>
+                  <div className="d-flex justify-content-center align-items-center">
+                    <Button text="Edit" onClick={() => onEditJobClick(job._id)} />
+                    <Button text="Delete" type="danger" onClick={() => onDeleteJobClick(job)} />
+                  </div>
                 </div>
               </div>
             </div>

@@ -2,10 +2,20 @@ import api from '../api/apiConfig';
 
 export const getAllJobs = async () => {
   try {
-    const response = await api.get('/jobs');
+    const response = await api.get('/jobs/get-jobs');
     return response.data;
   } catch (error) {
     console.error('Failed to fetch jobs:', error);
+    throw error;
+  }
+};
+
+export const deleteJob = async (id: string) => {
+  try {
+    const response = await api.get(`/jobs/delete-job/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to delete jobs:', error);
     throw error;
   }
 };
