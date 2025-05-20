@@ -17,11 +17,7 @@ const Job: React.FC<JobProps> = ({ job, onEdit, onDelete, onClick }) => {
       day: "numeric",
     });
   };
-
-  const handleRowClick = () => {
-    if (onClick) onClick(job);
-  };
-
+  
   const getStatusBadgeClass = (status: string) => {
     switch (status.toLowerCase()) {
       case "open":
