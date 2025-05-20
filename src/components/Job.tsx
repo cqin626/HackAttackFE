@@ -17,7 +17,7 @@ const Job: React.FC<JobProps> = ({ job, onEdit, onDelete, onClick }) => {
       day: "numeric",
     });
   };
-  
+
   const getStatusBadgeClass = (status: string) => {
     switch (status.toLowerCase()) {
       case "open":
@@ -32,7 +32,7 @@ const Job: React.FC<JobProps> = ({ job, onEdit, onDelete, onClick }) => {
   };
 
   return (
-       <tr onClick={() => { onClick(job) }} style={{ cursor: "pointer" }}>
+    <tr onClick={() => { onClick(job) }} style={{ cursor: "pointer" }}>
 
       <td className="py-3">
         <div className="fw-semibold">{job.title}</div>
@@ -63,15 +63,15 @@ const Job: React.FC<JobProps> = ({ job, onEdit, onDelete, onClick }) => {
       </td>
       <td className="py-3" onClick={(e) => e.stopPropagation()}>
         <div className="d-flex gap-2 justify-content-end">
-          <button 
-            className="btn btn-sm btn-outline-primary" 
+          <button
+            className="btn btn-sm btn-outline-primary"
             onClick={() => onEdit(job._id)}
           >
             <i className="bi bi-pencil-square me-1"></i>
             Edit
           </button>
-          <button 
-            className="btn btn-sm btn-outline-danger" 
+          <button
+            className="btn btn-sm btn-outline-danger"
             onClick={() => onDelete(job)}
           >
             <i className="bi bi-trash me-1"></i>

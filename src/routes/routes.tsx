@@ -3,7 +3,6 @@ import HomePage from "../pages/HomePage";
 import JobPage from "../pages/JobPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import AboutPage from "../pages/AboutPage";
-import JobPage from "../pages/JobPage";
 
 const router = createBrowserRouter([
   {
@@ -16,7 +15,7 @@ const router = createBrowserRouter([
     element: <AboutPage />,
     errorElement: <NotFoundPage />,
   },
-    {
+  {
     path: "/job/:id",
     element: <JobPage />,
     errorElement: <NotFoundPage />,

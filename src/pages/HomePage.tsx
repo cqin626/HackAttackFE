@@ -24,7 +24,7 @@ const Home: React.FC = () => {
   const [shouldReloadJobs, setShouldReloadJobs] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  
+
   const navigate = useNavigate();
 
   type ErrorResponse = {
@@ -49,16 +49,15 @@ const Home: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchJobs();
   }, [shouldReloadJobs]);
 
   // Filter jobs based on search term and status
   const filteredJobs = jobs.filter(job => {
     const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         job.description.toLowerCase().includes(searchTerm.toLowerCase());
+      job.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "All" || job.status === statusFilter;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -68,20 +67,6 @@ const Home: React.FC = () => {
         <Navbar />
         <div className="container py-5">
           <Spinner message="Loading Jobs..." />
-        </div>
-      </>
-    );
-  }
-
-  if (error) {
-    return (
-      <>
-        <Navbar />
-        <div className="container py-5">
-          <div className="alert alert-danger my-5" role="alert">
-            <i className="bi bi-exclamation-triangle-fill me-2"></i>
-            {error}
-          </div>
         </div>
       </>
     );
@@ -107,7 +92,7 @@ const Home: React.FC = () => {
   const viewJobDetails = (job: JobType) => {
     navigate(`/job/${job._id}`);
   };
-  
+
   // Edit
   const handleEditRequest = async (job: JobType) => {
     setJobToEdit(job);
@@ -172,10 +157,10 @@ const Home: React.FC = () => {
                 Job Listings
               </h2>
               <div className="d-flex flex-column flex-md-row gap-2">
-                <Button 
-                  text="Add New Job" 
+                <Button
+                  text="Add New Job"
                   icon="plus-lg"
-                  onClick={handleAddJobClick} 
+                  onClick={handleAddJobClick}
                 />
               </div>
             </div>
@@ -222,7 +207,16 @@ const Home: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredJobs.length > 0 ? (
+                  {error ? (
+                    <tr>
+                      <td colSpan={6}>
+                        <div className="alert alert-danger my-4 d-flex align-items-center" role="alert">
+                          <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                          {error}
+                        </div>
+                      </td>
+                    </tr>
+                  ) : filteredJobs.length > 0 ? (
                     filteredJobs.map((job) => (
                       <Job
                         key={job._id}
