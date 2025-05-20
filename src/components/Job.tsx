@@ -1,6 +1,5 @@
 import React from "react";
 import type { JobType } from "../models/Job";
-import Button from "./Button";
 
 interface JobProps {
   job: JobType;
@@ -23,17 +22,68 @@ const Job: React.FC<JobProps> = ({ job, onEdit, onDelete, onClick }) => {
     if (onClick) onClick(job);
   };
 
+  const getStatusBadgeClass = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "open":
+        return "badge bg-success";
+      case "closed":
+        return "badge bg-secondary";
+      case "paused":
+        return "badge bg-warning text-dark";
+      default:
+        return "badge bg-info";
+    }
+  };
+
   return (
-    <tr onClick={handleRowClick} style={{ cursor: onClick ? "pointer" : "default" }}>
-      <td>{job.title}</td>
-      <td>{job.employmentType}</td>
-      <td>{job.status}</td>
-      <td>{job.salaryRange.min} - {job.salaryRange.max} {job.salaryRange.currency}</td>
-      <td>{formatDate(job.createdAt)}</td>
-      <td onClick={(e) => e.stopPropagation()}>
-        <div className="d-flex gap-2">
-          <Button text="Edit" onClick={() => onEdit(job._id)} />
-          <Button text="Delete" type="danger" onClick={() => onDelete(job)} />
+    <tr 
+      onClick={handleRowClick} 
+      style={{ cursor: onClick ? "pointer" : "default" }}
+      className="job-row"
+    >
+      <td className="py-3">
+        <div className="fw-semibold">{job.title}</div>
+      </td>
+      <td className="py-3">
+        <span className="badge bg-light text-dark border">{job.employmentType}</span>
+      </td>
+      <td className="py-3">
+        <span className={getStatusBadgeClass(job.status)}>{job.status}</span>
+      </td>
+      <td className="py-3">
+        <div className="d-flex align-items-center">
+          <span className="text-secondary me-1">
+            <i className="bi bi-currency-exchange"></i>
+          </span>
+          <span>
+            {job.salaryRange.min.toLocaleString()} - {job.salaryRange.max.toLocaleString()} {job.salaryRange.currency}
+          </span>
+        </div>
+      </td>
+      <td className="py-3 text-secondary small">
+        <div className="d-flex align-items-center">
+          <span className="me-1">
+            <i className="bi bi-calendar-event"></i>
+          </span>
+          <span>{formatDate(job.createdAt)}</span>
+        </div>
+      </td>
+      <td className="py-3" onClick={(e) => e.stopPropagation()}>
+        <div className="d-flex gap-2 justify-content-end">
+          <button 
+            className="btn btn-sm btn-outline-primary" 
+            onClick={() => onEdit(job._id)}
+          >
+            <i className="bi bi-pencil-square me-1"></i>
+            Edit
+          </button>
+          <button 
+            className="btn btn-sm btn-outline-danger" 
+            onClick={() => onDelete(job)}
+          >
+            <i className="bi bi-trash me-1"></i>
+            Delete
+          </button>
         </div>
       </td>
     </tr>
