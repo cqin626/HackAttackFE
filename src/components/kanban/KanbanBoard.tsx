@@ -2,7 +2,6 @@ import { useState } from "react";
 import ColumnContainer from "./ColumnContainer";
 import type { CandidateType } from "../../types/types";
 
-
 const KanbanBoard = () => {
   // Mock Candidate Data
   const mockCandidates: CandidateType[] = [
@@ -113,39 +112,67 @@ const KanbanBoard = () => {
   const [columns, setColumns] = useState<string[]>(['Applied', 'Screened', 'Verified', 'Interview Scheduled']);
   const [candidates, setCandidates] = useState<CandidateType[]>(mockCandidates);
 
-  const columnConfigs: Record<string, { buttonText: string; onClick: () => void }> = {
+  const columnConfigs: Record<string, { buttonText: string; onClick: () => void; icon: string; color: string }> = {
     'Applied': {
       buttonText: 'Filter',
-      onClick: () => console.log('Filtering Applied Candidates')
+      onClick: () => console.log('Filtering Applied Candidates'),
+      icon: 'bi-funnel',
+      color: 'primary'
     },
     'Screened': {
       buttonText: 'Verify',
-      onClick: () => console.log('Viewing Screened Candidates')
+      onClick: () => console.log('Viewing Screened Candidates'),
+      icon: 'bi-check-circle',
+      color: 'info'
     },
     'Verified': {
       buttonText: 'Schedule Interview',
-      onClick: () => console.log('Verifying Candidate Info')
+      onClick: () => console.log('Verifying Candidate Info'),
+      icon: 'bi-calendar-event',
+      color: 'success'
     },
     'Interview Scheduled': {
       buttonText: 'Mark Interviewed',
-      onClick: () => console.log('Rescheduling Interview')
+      onClick: () => console.log('Rescheduling Interview'),
+      icon: 'bi-check2-all',
+      color: 'warning'
     }
   };
 
   return (
-    <div className="my-5">
-      <h4>Application Progress</h4>
-      <div className="d-flex justify-content-between flex-wrap gap-3 mt-3">
-        {columns.map(col => (
-          <ColumnContainer
-            key={col}
-            column={col}
-            buttonText={columnConfigs[col].buttonText}
-            onButtonClick={columnConfigs[col].onClick}
-            candidates={candidates.filter(candidate => candidate.status === col)}
-          />
-        ))}
-
+    <div className="my-5 pb-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h4 className="fw-bold text-primary mb-0">
+          <i className="bi bi-kanban me-2"></i>
+          Application Progress
+        </h4>
+        <div className="btn-group">
+          <button type="button" className="btn btn-sm btn-outline-secondary">
+            <i className="bi bi-sort-down me-1"></i>
+            Sort
+          </button>
+          <button type="button" className="btn btn-sm btn-outline-secondary">
+            <i className="bi bi-funnel me-1"></i>
+            Filter
+          </button>
+        </div>
+      </div>
+      
+      <div className="kanban-board">
+        <div className="row g-3">
+          {columns.map(col => (
+            <div className="col-md-6 col-lg-3" key={col}>
+              <ColumnContainer
+                column={col}
+                buttonText={columnConfigs[col].buttonText}
+                onButtonClick={columnConfigs[col].onClick}
+                candidates={candidates.filter(candidate => candidate.status === col)}
+                icon={columnConfigs[col].icon}
+                color={columnConfigs[col].color}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
