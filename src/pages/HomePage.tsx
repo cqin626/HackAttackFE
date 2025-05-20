@@ -201,7 +201,7 @@ const Home: React.FC = () => {
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
-                  <option value="All">All Statuses</option>
+                  <option value="All">All Status</option>
                   <option value="Open">Open</option>
                   <option value="Closed">Closed</option>
                   <option value="Paused">Paused</option>
