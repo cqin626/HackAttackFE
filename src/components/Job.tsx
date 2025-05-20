@@ -6,9 +6,10 @@ interface JobProps {
   job: JobType;
   onEdit: (id: string) => void;
   onDelete: (job: JobType) => void;
+  onClick?: (job: JobType) => void;
 }
 
-const Job: React.FC<JobProps> = ({ job, onEdit, onDelete }) => {
+const Job: React.FC<JobProps> = ({ job, onEdit, onDelete, onClick }) => {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString(undefined, {
@@ -18,37 +19,24 @@ const Job: React.FC<JobProps> = ({ job, onEdit, onDelete }) => {
     });
   };
 
+  const handleRowClick = () => {
+    if (onClick) onClick(job);
+  };
+
   return (
-    <div className="col-12 col-md-6 col-lg-4 mb-4">
-      <div className="card h-100">
-        <div className="card-body d-flex flex-column">
-          <h5 className="card-title">{job.title}</h5>
-          <h6 className="card-subtitle mb-2 text-muted">
-            {job.employmentType} | {job.status}
-          </h6>
-          <p className="card-text">{job.description}</p>
-          <p className="mb-1">
-            <strong>Requirements:</strong>
-          </p>
-          <ul className="mb-3">
-            {job.requirements.map((req, idx) => (
-              <li key={idx}>{req}</li>
-            ))}
-          </ul>
-          <p className="mt-auto">
-            <strong>Salary:</strong> {job.salaryRange.min} - {job.salaryRange.max}{" "}
-            {job.salaryRange.currency}
-          </p>
+    <tr onClick={handleRowClick} style={{ cursor: onClick ? "pointer" : "default" }}>
+      <td>{job.title}</td>
+      <td>{job.employmentType}</td>
+      <td>{job.status}</td>
+      <td>{job.salaryRange.min} - {job.salaryRange.max} {job.salaryRange.currency}</td>
+      <td>{formatDate(job.createdAt)}</td>
+      <td onClick={(e) => e.stopPropagation()}>
+        <div className="d-flex gap-2">
+          <Button text="Edit" onClick={() => onEdit(job._id)} />
+          <Button text="Delete" type="danger" onClick={() => onDelete(job)} />
         </div>
-        <div className="card-footer text-muted">
-          <div>Posted on: {formatDate(job.createdAt)}</div>
-          <div className="d-flex justify-content-center align-items-center">
-            <Button text="Edit" onClick={() => onEdit(job._id)} />
-            <Button text="Delete" type="danger" onClick={() => onDelete(job)} />
-          </div>
-        </div>
-      </div>
-    </div>
+      </td>
+    </tr>
   );
 };
 

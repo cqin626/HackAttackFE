@@ -77,6 +77,11 @@ const Home: React.FC = () => {
     }
   };
 
+  // Read
+  const viewJobDetails = (job: JobType) => {
+    console.log(job);
+  }
+
   // Edit
   const handleEditRequest = async (job: JobType) => {
     // toast.success("Edited " + job._id);
@@ -144,15 +149,35 @@ const Home: React.FC = () => {
 
         {/* Display */}
         <div className="row">
-          {jobs.map((job) => (
-            <Job
-              key={job._id}
-              job={job}
-              onEdit={() => handleEditRequest(job)}
-              onDelete={() => handleDeleteRequest(job)}
-            />
-          ))}
+          <div className="col-12">
+            <div className="table-responsive">
+              <table className="table table-bordered table-striped table-hover align-middle">
+                <thead className="table-dark">
+                  <tr>
+                    <th>Title</th>
+                    <th>Employment Type</th>
+                    <th>Status</th>
+                    <th>Salary Range</th>
+                    <th>Created At</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {jobs.map((job) => (
+                    <Job
+                      key={job._id}
+                      job={job}
+                      onEdit={() => handleEditRequest(job)}
+                      onDelete={() => handleDeleteRequest(job)}
+                      onClick={() => viewJobDetails(job)}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
+
 
         {/* Update */}
         <Modal id="editJobModal" title="Edit Job" onConfirm={handleSave}>
