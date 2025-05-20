@@ -1,18 +1,42 @@
 import React, { useEffect, useState } from "react";
-import { getAllJobs } from "../services/jobService";
-import type { Job } from "../models/Job";
 import Navbar from "../components/Navbar";
+import Button from "../components/Button";
+import Modal from "../components/Modal";
+import JobForm from "../components/JobForm";
+import Job from "../components/Job";
+import { Modal as BootstrapModal } from "bootstrap";
+import type { CreateJobType } from '../types/CreateJobType';
+import { deleteJob, getAllJobs, updateJob } from "../services/jobService";
+import toast from "react-hot-toast";
+import type { JobType } from "../models/Job";
+import Spinner from "../components/Spinner";
+import type { AxiosError } from "axios";
 
 const Home: React.FC = () => {
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<JobType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [jobToDelete, setJobToDelete] = useState<JobType | null>(null);
+  const [jobToEdit, setJobToEdit] = useState<JobType | null>(null);
+  const [newJobData, setNewJobData] = useState<CreateJobType>();
+  const [shouldReloadJobs, setShouldReloadJobs] = useState(0);
+
+  type ErrorResponse = {
+    message: string;
+  };
+
+  // show error toast if any
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
         const data = await getAllJobs();
-        setJobs(data);
+        setJobs(data.jobs);
       } catch {
         setError("Failed to load jobs");
       } finally {
@@ -21,23 +45,11 @@ const Home: React.FC = () => {
     };
 
     fetchJobs();
-  }, []);
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  }, [shouldReloadJobs]);
 
   if (loading) {
     return (
-      <div className="text-center my-5">
-        <div className="spinner-border" role="status"></div>
-        <div>Loading jobs...</div>
-      </div>
+      <Spinner message="Loading Jobs..."></Spinner>
     );
   }
 
@@ -49,41 +61,114 @@ const Home: React.FC = () => {
     );
   }
 
+  // Create
+  const handleAddJobClick = () => {
+    const modalElement = document.getElementById("addJobModal");
+    if (modalElement) {
+      const modal = new BootstrapModal(modalElement);
+      modal.show();
+    }
+  };
+
+  const handleSave = () => {
+    const form = document.getElementById("jobForm") as HTMLFormElement;
+    if (form) {
+      form.requestSubmit();
+    }
+  };
+
+  // Edit
+  const handleEditRequest = async (job: JobType) => {
+    // toast.success("Edited " + job._id);
+    setJobToEdit(job);
+
+    const modalElement = document.getElementById("editJobModal");
+    if (modalElement) {
+      const modal = new BootstrapModal(modalElement);
+      modal.show();
+    }
+  };
+
+  // Delete
+  const confirmDelete = async () => {
+    if (!jobToDelete) return;
+
+    const modalEl = document.getElementById("deleteJobModal");
+    let modal: BootstrapModal | null = null;
+
+    if (modalEl) {
+      modal = BootstrapModal.getInstance(modalEl);
+      modal?.hide();
+    }
+
+    try {
+      setLoading(true);
+      await deleteJob(jobToDelete._id);
+      toast.success(`Deleted job "${jobToDelete.title}" successfully.`);
+      setShouldReloadJobs((prev) => prev + 1);
+
+    } catch (e: unknown) {
+      const error = e as AxiosError<ErrorResponse>;
+      const message = error.response?.data?.message || "Failed to delete job (unknown error)";
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+      setJobToDelete(null);
+    }
+  };
+
+  const handleDeleteRequest = (job: JobType) => {
+    setJobToDelete(job);
+
+    // show confirmation modal
+    const modalEl = document.getElementById("deleteJobModal");
+    if (modalEl) {
+      const modal = new BootstrapModal(modalEl);
+      modal.show();
+    }
+  };
+
   return (
     <>
-      <Navbar></Navbar>
+      <Navbar />
+
       <div className="container my-3">
         <h1 className="mb-4">Jobs</h1>
+
+        {/* Create */}
+        <Button text="Add Job" onClick={handleAddJobClick} />
+        <Modal id="addJobModal" title="Add Job" onConfirm={handleSave}>
+          <JobForm setNewJobData={setNewJobData} setShouldReloadJobs={setShouldReloadJobs}></JobForm>
+        </Modal>
+
+        {/* Display */}
         <div className="row">
           {jobs.map((job) => (
-            <div key={job._id} className="col-12 col-md-6 col-lg-4 mb-4">
-              <div className="card h-100">
-                <div className="card-body d-flex flex-column">
-                  <h5 className="card-title">{job.title}</h5>
-                  <h6 className="card-subtitle mb-2 text-muted">
-                    {job.employmentType} | {job.status}
-                  </h6>
-                  <p className="card-text">{job.description}</p>
-                  <p className="mb-1">
-                    <strong>Requirements:</strong>
-                  </p>
-                  <ul className="mb-3">
-                    {job.requirements.map((req, idx) => (
-                      <li key={idx}>{req}</li>
-                    ))}
-                  </ul>
-                  <p className="mt-auto">
-                    <strong>Salary:</strong> {job.salaryRange.min} -{" "}
-                    {job.salaryRange.max} {job.salaryRange.currency}
-                  </p>
-                </div>
-                <div className="card-footer text-muted">
-                  Posted on: {formatDate(job.createdAt)}
-                </div>
-              </div>
-            </div>
+            <Job
+              key={job._id}
+              job={job}
+              onEdit={() => handleEditRequest(job)}
+              onDelete={() => handleDeleteRequest(job)}
+            />
           ))}
         </div>
+
+        {/* Update */}
+        <Modal id="editJobModal" title="Edit Job" onConfirm={handleSave}>
+          <JobForm setNewJobData={setNewJobData} setShouldReloadJobs={setShouldReloadJobs} jobToEdit={jobToEdit}></JobForm>
+        </Modal>
+
+        {/* Delete */}
+        <Modal
+          id="deleteJobModal"
+          title="Confirm Deletion"
+          onConfirm={confirmDelete}
+          btnText="Delete"
+        >
+          Are you sure you want to delete{" "}
+          <strong>{jobToDelete?.title}</strong>?
+        </Modal>
       </div>
     </>
   );

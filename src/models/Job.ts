@@ -1,4 +1,4 @@
-export interface Job {
+export interface JobType {
   _id: string;
   title: string;
   employmentType: 'Full-Time' | 'Part-Time' | 'Contract' | 'Internship';
