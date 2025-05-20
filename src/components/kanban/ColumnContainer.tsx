@@ -18,7 +18,7 @@ const ColumnContainer = ({ column, buttonText, onButtonClick, candidates }: Prop
       {/* Candidate List */}
       <div className="card-body text-muted">{
         candidates.map(candidate => (
-          <CandidateCard candidates={candidate}></CandidateCard>
+          <CandidateCard key={candidate.id} candidates={candidate}></CandidateCard>
         ))
       }</div>
 

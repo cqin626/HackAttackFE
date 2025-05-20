@@ -3,6 +3,8 @@ import HomePage from "../pages/HomePage";
 import JobPage from "../pages/JobPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import AboutPage from "../pages/AboutPage";
+import SchedulePage from "../pages/SchedulePage";
+import MessagePage from "../pages/MessagePage";
 
 const router = createBrowserRouter([
   {
@@ -23,6 +25,14 @@ const router = createBrowserRouter([
   {
     path: "/jobs",
     element: <JobPage />,
+  },
+  {
+    path: "/schedule",
+    element: <SchedulePage />,
+  },
+  {
+    path: "/message",
+    element: <MessagePage />,
   },
 ]);
 
