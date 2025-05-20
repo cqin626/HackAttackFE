@@ -13,7 +13,6 @@ type JobFormProps = {
 };
 
 const JobForm: React.FC<JobFormProps> = ({ setNewJobData, setShouldReloadJobs, jobToEdit }) => {
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -39,7 +38,6 @@ const JobForm: React.FC<JobFormProps> = ({ setNewJobData, setShouldReloadJobs, j
       setStatus(jobToEdit.status);
     }
   }, [jobToEdit]);
-
 
   useEffect(() => {
     if (error) {
@@ -100,83 +98,159 @@ const JobForm: React.FC<JobFormProps> = ({ setNewJobData, setShouldReloadJobs, j
   };
 
   if (loading) {
-    return (
-      <Spinner message="Adding Jobs"></Spinner>
-    );
+    return <Spinner message="Adding Jobs" />;
   }
 
   return (
-    <div>
-      <div className="container">
-        <form id="jobForm" onSubmit={handleSubmit} noValidate>
-          {/*Job Title*/}
-          <div className="mb-3">
-            <label htmlFor="title" className="form-label">Job Title</label>
-            <input type="text" className="form-control" id="title" name="title" required value={title}
-              onChange={(e) => setTitle(e.target.value)} />
-          </div>
+    <div className="job-form-container">
+      <form id="jobForm" onSubmit={handleSubmit} noValidate>
+        {/* Job Title */}
+        <div className="mb-4">
+          <label htmlFor="title" className="form-label">
+            Job Title
+          </label>
+          <input
+            type="text"
+            className="form-control"
+            id="title"
+            name="title"
+            required
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Enter job title"
+          />
+        </div>
 
-          {/*Employment Type*/}
-          <div className="mb-3">
-            <label htmlFor="employmentType" className="form-label">Employment Type</label>
-            <select className="form-select" id="employmentType" name="employmentType" required value={employmentType}
-              onChange={(e) => setEmploymentType(e.target.value)}>
-              <option value="">Select type</option>
-              <option value="Full-Time">Full-Time</option>
-              <option value="Part-Time">Part-Time</option>
-              <option value="Contract">Contract</option>
-              <option value="Internship">Internship</option>
-            </select>
-          </div>
+        {/* Employment Type */}
+        <div className="mb-4">
+          <label htmlFor="employmentType" className="form-label">
+            Employment Type
+          </label>
+          <select
+            className="form-select"
+            id="employmentType"
+            name="employmentType"
+            required
+            value={employmentType}
+            onChange={(e) => setEmploymentType(e.target.value)}
+          >
+            <option value="">Select type</option>
+            <option value="Full-Time">Full-Time</option>
+            <option value="Part-Time">Part-Time</option>
+            <option value="Contract">Contract</option>
+            <option value="Internship">Internship</option>
+          </select>
+        </div>
 
-          {/*Description*/}
-          <div className="mb-3">
-            <label htmlFor="description" className="form-label">Job Description</label>
-            <textarea className="form-control" id="description" name="description" required value={description}
-              onChange={(e) => setDescription(e.target.value)}></textarea>
-          </div>
+        {/* Description */}
+        <div className="mb-4">
+          <label htmlFor="description" className="form-label">
+            Job Description
+          </label>
+          <textarea
+            className="form-control"
+            id="description"
+            name="description"
+            required
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={4}
+            placeholder="Enter job description"
+          ></textarea>
+        </div>
 
-          {/*Requirements*/}
-          <div className="mb-3">
-            <label htmlFor="requirements" className="form-label">Requirements (comma-separated)</label>
-            <input type="text" className="form-control" id="requirements" name="requirements" placeholder="e.g. JavaScript, Node.js, MongoDB" value={requirements}
-              onChange={(e) => setRequirements(e.target.value)}/>
-          </div>
+        {/* Requirements */}
+        <div className="mb-4">
+          <label htmlFor="requirements" className="form-label">
+            Requirements (comma-separated)
+          </label>
+          <input
+            type="text"
+            className="form-control"
+            id="requirements"
+            name="requirements"
+            placeholder="e.g. JavaScript, Node.js, MongoDB"
+            value={requirements}
+            onChange={(e) => setRequirements(e.target.value)}
+          />
+        </div>
 
-          {/*Salary Range*/}
-          <div className="row mb-3">
+        {/* Salary Range */}
+        <div className="card p-3 mb-4 bg-light border-0">
+          <h6 className="mb-3">Salary Information</h6>
+          <div className="row g-3">
             <div className="col-md-4">
-              <label htmlFor="minSalary" className="form-label">Minimum Salary</label>
-              <input type="number" className="form-control" id="minSalary" name="salaryRange[min]" min="0" value={minSalary}
-              onChange={(e) => setMinSalary(e.target.value)}/>
+              <label htmlFor="minSalary" className="form-label">
+                Minimum Salary
+              </label>
+              <input
+                type="number"
+                className="form-control"
+                id="minSalary"
+                name="salaryRange[min]"
+                min="0"
+                value={minSalary}
+                onChange={(e) => setMinSalary(e.target.value)}
+                placeholder="0"
+              />
             </div>
             <div className="col-md-4">
-              <label htmlFor="maxSalary" className="form-label">Maximum Salary</label>
-              <input type="number" className="form-control" id="maxSalary" name="salaryRange[max]" min="0" value={maxSalary}
-              onChange={(e) => setMaxSalary(e.target.value)}/>
+              <label htmlFor="maxSalary" className="form-label">
+                Maximum Salary
+              </label>
+              <input
+                type="number"
+                className="form-control"
+                id="maxSalary"
+                name="salaryRange[max]"
+                min="0"
+                value={maxSalary}
+                onChange={(e) => setMaxSalary(e.target.value)}
+                placeholder="0"
+              />
             </div>
             <div className="col-md-4">
-              <label htmlFor="currency" className="form-label">Currency</label>
-              <input type="text" className="form-control" id="currency" name="salaryRange[currency]" value={currency}
-              onChange={(e) => setCurrency(e.target.value)}/>
+              <label htmlFor="currency" className="form-label">
+                Currency
+              </label>
+              <select
+                className="form-select"
+                id="currency"
+                name="salaryRange[currency]"
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+              >
+                <option value="MYR">MYR</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="SGD">SGD</option>
+              </select>
             </div>
           </div>
+        </div>
 
-          {/* Status */}
-          <div className="mb-3">
-            <label htmlFor="status" className="form-label">Job Status</label>
-            <select className="form-select" id="status" name="status" value={status}
-              onChange={(e) => setStatus(e.target.value)}>
-              <option value="Open">Open</option>
-              <option value="Closed">Closed</option>
-              <option value="Paused">Paused</option>
-            </select>
-          </div>
-          <button type="submit" hidden></button>
-        </form>
-      </div>
+        {/* Status */}
+        <div className="mb-4">
+          <label htmlFor="status" className="form-label">
+            Job Status
+          </label>
+          <select
+            className="form-select"
+            id="status"
+            name="status"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="Open">Open</option>
+            <option value="Closed">Closed</option>
+            <option value="Paused">Paused</option>
+          </select>
+        </div>
+        <button type="submit" hidden></button>
+      </form>
     </div>
-  )
-}
+  );
+};
 
-export default JobForm
+export default JobForm;
