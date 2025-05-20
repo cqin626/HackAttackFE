@@ -11,6 +11,8 @@ import toast from "react-hot-toast";
 import type { JobType } from "../models/Job";
 import Spinner from "../components/Spinner";
 import type { AxiosError } from "axios";
+import { useNavigate } from "react-router-dom";
+
 
 const Home: React.FC = () => {
   const [jobs, setJobs] = useState<JobType[]>([]);
@@ -22,6 +24,8 @@ const Home: React.FC = () => {
   const [shouldReloadJobs, setShouldReloadJobs] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  
+  const navigate = useNavigate();
 
   type ErrorResponse = {
     message: string;
@@ -101,9 +105,9 @@ const Home: React.FC = () => {
 
   // Read
   const viewJobDetails = (job: JobType) => {
-    console.log(job);
-  }
-
+    navigate(`/job/${job._id}`);
+  };
+  
   // Edit
   const handleEditRequest = async (job: JobType) => {
     setJobToEdit(job);

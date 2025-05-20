@@ -5,7 +5,7 @@ interface JobProps {
   job: JobType;
   onEdit: (id: string) => void;
   onDelete: (job: JobType) => void;
-  onClick?: (job: JobType) => void;
+  onClick: (job: JobType) => void;
 }
 
 const Job: React.FC<JobProps> = ({ job, onEdit, onDelete, onClick }) => {
@@ -36,11 +36,8 @@ const Job: React.FC<JobProps> = ({ job, onEdit, onDelete, onClick }) => {
   };
 
   return (
-    <tr 
-      onClick={handleRowClick} 
-      style={{ cursor: onClick ? "pointer" : "default" }}
-      className="job-row"
-    >
+       <tr onClick={() => { onClick(job) }} style={{ cursor: "pointer" }}>
+
       <td className="py-3">
         <div className="fw-semibold">{job.title}</div>
       </td>

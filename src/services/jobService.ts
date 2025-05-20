@@ -11,6 +11,16 @@ export const getAllJobs = async () => {
   }
 };
 
+export const getJobById = async (id: string) => {
+  try {
+    const response = await api.get(`/jobs/get-jobs/${id}`);
+    return response.data.job;
+  } catch (error) {
+    console.error('Failed to fetch job by ID:', error);
+    throw error;
+  }
+};
+
 export const deleteJob = async (id: string) => {
   try {
     const response = await api.get(`/jobs/delete-job/${id}`);
