@@ -1,5 +1,5 @@
 import api from '../api/apiConfig';
-import type { CreateJobType } from '../types/CreateJobType';
+import type { CreateJobType } from '../types/types';
 
 export const getAllJobs = async () => {
   try {
@@ -31,9 +31,9 @@ export const deleteJob = async (id: string) => {
   }
 };
 
-export const updateJob = async (id: string) => {
+export const updateJob = async (id: string, data: CreateJobType) => {
   try {
-    const response = await api.post(`/jobs/update-job/${id}`);
+    const response = await api.post(`/jobs/update-job/${id}`, data);
     return response.data;
   } catch (error) {
     console.error('Failed to update job:', error);

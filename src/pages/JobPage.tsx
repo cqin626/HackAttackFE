@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getJobById } from '../services/jobService';
 import type { JobType } from '../models/Job';
+import KanbanBoard from "../components/kanban/KanbanBoard";
+import Navbar from "../components/Navbar";
 
 const JobPage = () => {
   const { id } = useParams();
@@ -20,8 +22,9 @@ const JobPage = () => {
 
   return (
     <>
-      <UploadResume></UploadResume>
-      
+      <Navbar />
+      <UploadResume />
+
       <div className="container mt-5">
         <div className="card shadow">
           <div className="card-body">
@@ -61,6 +64,7 @@ const JobPage = () => {
             </p>
           </div>
         </div>
+        <KanbanBoard />
       </div>
     </>
   );

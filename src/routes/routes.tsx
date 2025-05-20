@@ -21,7 +21,7 @@ const router = createBrowserRouter([
     errorElement: <NotFoundPage />,
   },
   {
-    path: "/jobs",  // <-- Add this route for general JobPage
+    path: "/jobs",
     element: <JobPage />,
   },
 ]);
