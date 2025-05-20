@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import "../assets/styles/Navbar.css";
-import * as bootstrap from "bootstrap";
+// import bootstrap from "bootstrap";
 
 
 const Navbar = () => {
@@ -34,12 +34,6 @@ const Navbar = () => {
               </li>
               <li className="nav-item">
                 <Link className="nav-link" to="/about">About</Link>
-              </li>
-              <li className="nav-item">
-                <button className="btn btn-primary ms-2">
-                  <i className="bi bi-plus-lg me-1"></i>
-                  New Job
-                </button>
               </li>
             </ul>
           </div>
@@ -88,27 +82,6 @@ const Navbar = () => {
               <i className="bi bi-info-circle me-2"></i>
               About
             </Link>
-          </li>
-          <li className="nav-item">
-            <hr className="my-2" />
-          </li>
-          <li className="nav-item">
-            <a 
-              className="btn btn-primary w-100 d-flex align-items-center justify-content-center"
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                toggleSidebar();
-                const modalElement = document.getElementById("addJobModal");
-                if (modalElement) {
-                  const modal = new bootstrap.Modal(modalElement);
-                  modal.show();
-                }
-              }}
-            >
-              <i className="bi bi-plus-lg me-2"></i>
-              New Job
-            </a>
           </li>
         </ul>
       </div>
