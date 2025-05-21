@@ -7,26 +7,22 @@ import SchedulePage from "../pages/SchedulePage";
 import MessagePage from "../pages/MessagePage";
 import LoginPage from "../pages/LoginPage";
 
-
 const router = createBrowserRouter([
-   {
-    path: "/",             
+  {
+    path: "/",
     element: <LoginPage />,
   },
   {
     path: "/home",
     element: <HomePage />,
-    errorElement: <NotFoundPage />,
   },
   {
     path: "/about",
     element: <AboutPage />,
-    errorElement: <NotFoundPage />,
   },
   {
     path: "/job/:id",
     element: <JobPage />,
-    errorElement: <NotFoundPage />,
   },
   {
     path: "/jobs",
@@ -40,7 +36,10 @@ const router = createBrowserRouter([
     path: "/message",
     element: <MessagePage />,
   },
- 
+  {
+    path: "*",
+    element: <NotFoundPage />,
+  },
 ]);
 
 export default router;
