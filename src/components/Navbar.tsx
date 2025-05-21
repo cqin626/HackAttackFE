@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import "../assets/styles/Navbar.css";
 
 const navLinks = [
-  { path: "/", label: "Home", icon: "bi-house" },
+  { path: "/home", label: "Home", icon: "bi-house", extraClass: "" },
   { path: "/schedule", label: "Schedule", icon: "bi-calendar" },
   { path: "/message", label: "Message", icon: "bi-chat-dots" },
   { path: "/about", label: "About", icon: "bi-info-circle" },
@@ -18,7 +18,7 @@ const Navbar = () => {
       {/* Top navigation bar */}
       <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div className="container-fluid">
-          <Link className="navbar-brand d-flex align-items-center" to="/">
+          <Link className="navbar-brand d-flex align-items-center" to="/home">
             <span className="fw-bold text-primary">ATS</span>
             <span className="ms-2 fw-normal text-secondary">Applicant Tracking System</span>
           </Link>

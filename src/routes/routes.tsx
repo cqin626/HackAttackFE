@@ -5,10 +5,16 @@ import NotFoundPage from "../pages/NotFoundPage";
 import AboutPage from "../pages/AboutPage";
 import SchedulePage from "../pages/SchedulePage";
 import MessagePage from "../pages/MessagePage";
+import LoginPage from "../pages/LoginPage";
+
 
 const router = createBrowserRouter([
+   {
+    path: "/",             
+    element: <LoginPage />,
+  },
   {
-    path: "/",
+    path: "/home",
     element: <HomePage />,
     errorElement: <NotFoundPage />,
   },
@@ -34,6 +40,7 @@ const router = createBrowserRouter([
     path: "/message",
     element: <MessagePage />,
   },
+ 
 ]);
 
 export default router;

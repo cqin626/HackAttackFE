@@ -11,7 +11,7 @@ import toast from "react-hot-toast";
 import type { JobType } from "../models/Job";
 import Spinner from "../components/Spinner";
 import type { AxiosError } from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useLocation } from "react-router-dom";
 
 
 const Home: React.FC = () => {
@@ -26,6 +26,19 @@ const Home: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState("All");
 
   const navigate = useNavigate();
+  const location = useLocation();
+
+   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const token = params.get("token");
+
+    if (token) {
+      localStorage.setItem("token", token);
+      console.log("Token stored:", token);
+      navigate("/home", { replace: true }); 
+      return;
+    }
+  }, []);
 
   type ErrorResponse = {
     message: string;
