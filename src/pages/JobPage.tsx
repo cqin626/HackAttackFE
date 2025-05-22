@@ -1,4 +1,4 @@
-import UploadResume from "../components/UploadResume";
+import UploadResume from "../components/JobPage/UploadResume";
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getJobById } from '../services/jobService';
@@ -55,7 +55,7 @@ const JobPage = () => {
                   )}
                   <div className="d-inline-block">
                     <i className="bi bi-calendar-date me-1 text-primary"></i>
-                    <span>Posted: {new Date(job.createdAt).toLocaleDateString()}</span>
+                    <span>Posted: {new Date(job.createdAt ?? '').toLocaleDateString()}</span>
                   </div>
                 </div>
 

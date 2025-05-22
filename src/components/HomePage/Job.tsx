@@ -1,5 +1,5 @@
 import React from "react";
-import type { JobType } from "../models/Job";
+import type { JobType } from "../../models/Job";
 
 interface JobProps {
   job: JobType;
@@ -32,13 +32,19 @@ const Job: React.FC<JobProps> = ({ job, onEdit, onDelete, onClick }) => {
   };
 
   return (
-    <tr onClick={() => { onClick(job) }} style={{ cursor: "pointer" }}>
-
+    <tr
+      onClick={() => {
+        onClick(job);
+      }}
+      style={{ cursor: "pointer" }}
+    >
       <td className="py-3">
         <div className="fw-semibold">{job.title}</div>
       </td>
       <td className="py-3">
-        <span className="badge bg-light text-dark border">{job.employmentType}</span>
+        <span className="badge bg-light text-dark border">
+          {job.employmentType}
+        </span>
       </td>
       <td className="py-3">
         <span className={getStatusBadgeClass(job.status)}>{job.status}</span>
@@ -49,7 +55,8 @@ const Job: React.FC<JobProps> = ({ job, onEdit, onDelete, onClick }) => {
             <i className="bi bi-currency-exchange"></i>
           </span>
           <span>
-            {job.salaryRange.min.toLocaleString()} - {job.salaryRange.max.toLocaleString()} {job.salaryRange.currency}
+            {job.salaryRange.min.toLocaleString()} -{" "}
+            {job.salaryRange.max.toLocaleString()} {job.salaryRange.currency}
           </span>
         </div>
       </td>
@@ -58,14 +65,14 @@ const Job: React.FC<JobProps> = ({ job, onEdit, onDelete, onClick }) => {
           <span className="me-1">
             <i className="bi bi-calendar-event"></i>
           </span>
-          <span>{formatDate(job.createdAt)}</span>
+          <span>{formatDate(job.createdAt ?? "")}</span>
         </div>
       </td>
       <td className="py-3" onClick={(e) => e.stopPropagation()}>
         <div className="d-flex gap-2 justify-content-end">
           <button
             className="btn btn-sm btn-outline-primary"
-            onClick={() => onEdit(job._id)}
+            onClick={() => onEdit(job._id ?? "")}
           >
             <i className="bi bi-pencil-square me-1"></i>
             Edit

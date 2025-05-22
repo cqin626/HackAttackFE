@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
-import { createJob } from "../services/jobService";
+import { createJob } from "../../services/jobService.ts";
 import toast from "react-hot-toast";
-import Spinner from "./Spinner.tsx";
-import type { CreateJobType } from '../types/CreateJobType.ts';
+import Spinner from "../Spinner.tsx";
 import { Modal as BootstrapModal } from "bootstrap";
-import type { JobType } from "../models/Job.ts";
+import type { JobType } from "../../models/Job.ts";
 
 type JobFormProps = {
-  setNewJobData: (data: CreateJobType) => void;
+  setNewJobData: (data: JobType) => void;
   setShouldReloadJobs: React.Dispatch<React.SetStateAction<number>>;
   jobToEdit?: JobType | null;
 };
 
-const JobForm: React.FC<JobFormProps> = ({ setNewJobData, setShouldReloadJobs, jobToEdit }) => {
+const JobForm: React.FC<JobFormProps> = ({
+  setNewJobData,
+  setShouldReloadJobs,
+  jobToEdit,
+}) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -64,18 +67,18 @@ const JobForm: React.FC<JobFormProps> = ({ setNewJobData, setShouldReloadJobs, j
 
     const requirements = data.requirements
       ? (data.requirements as string)
-        .split(",")
-        .map((r) => r.trim())
-        .filter(Boolean)
+          .split(",")
+          .map((r) => r.trim())
+          .filter(Boolean)
       : [];
 
-    const jobDetails = {
+    const jobDetails: Omit<JobType, "_id" | "createdAt"> = {
       title: data.title as string,
-      employmentType: data.employmentType as string,
+      employmentType: data.employmentType as JobType["employmentType"],
       description: data.description as string,
       requirements,
       salaryRange,
-      status: data.status as string,
+      status: data.status as JobType["status"],
     };
 
     setNewJobData(jobDetails);
@@ -83,7 +86,7 @@ const JobForm: React.FC<JobFormProps> = ({ setNewJobData, setShouldReloadJobs, j
     try {
       setLoading(true);
       await createJob(jobDetails);
-      setShouldReloadJobs(prev => prev + 1);
+      setShouldReloadJobs((prev) => prev + 1);
       const modalElement = document.getElementById("addJobModal");
       if (modalElement) {
         const modal = BootstrapModal.getInstance(modalElement);

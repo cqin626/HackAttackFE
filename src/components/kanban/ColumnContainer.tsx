@@ -1,5 +1,5 @@
 import React from 'react';
-import type { CandidateType } from '../../types/types';
+import type { CandidateType } from '../../models/Candidate';
 
 interface ColumnContainerProps {
   column: string;

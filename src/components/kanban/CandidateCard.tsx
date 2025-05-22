@@ -1,4 +1,4 @@
-import type { CandidateType } from "../../types/types";
+import type { CandidateType } from "../../models/Candidate";
 
 interface Props {
   candidates: CandidateType;

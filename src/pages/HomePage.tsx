@@ -2,17 +2,15 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import Button from "../components/Button";
 import Modal from "../components/Modal";
-import JobForm from "../components/JobForm";
-import Job from "../components/Job";
+import JobForm from "../components/HomePage/JobForm";
+import Job from "../components/HomePage/Job";
 import { Modal as BootstrapModal } from "bootstrap";
-import type { CreateJobType } from '../types/CreateJobType';
 import { deleteJob, getAllJobs, updateJob } from "../services/jobService";
 import toast from "react-hot-toast";
 import type { JobType } from "../models/Job";
 import Spinner from "../components/Spinner";
 import type { AxiosError } from "axios";
-import { useNavigate,useLocation } from "react-router-dom";
-
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Home: React.FC = () => {
   const [jobs, setJobs] = useState<JobType[]>([]);
@@ -20,7 +18,7 @@ const Home: React.FC = () => {
   const [error, setError] = useState("");
   const [jobToDelete, setJobToDelete] = useState<JobType | null>(null);
   const [jobToEdit, setJobToEdit] = useState<JobType | null>(null);
-  const [newJobData, setNewJobData] = useState<CreateJobType>();
+  const [newJobData, setNewJobData] = useState<JobType>();
   const [shouldReloadJobs, setShouldReloadJobs] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -28,14 +26,14 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-   useEffect(() => {
+  useEffect(() => {
     const params = new URLSearchParams(location.search);
     const token = params.get("token");
 
     if (token) {
       localStorage.setItem("token", token);
       console.log("Token stored:", token);
-      navigate("/home", { replace: true }); 
+      navigate("/home", { replace: true });
       return;
     }
   }, []);
@@ -66,8 +64,9 @@ const Home: React.FC = () => {
   }, [shouldReloadJobs]);
 
   // Filter jobs based on search term and status
-  const filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredJobs = jobs.filter((job) => {
+    const matchesSearch =
+      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "All" || job.status === statusFilter;
 
@@ -131,13 +130,13 @@ const Home: React.FC = () => {
 
     try {
       setLoading(true);
-      await deleteJob(jobToDelete._id);
+      await deleteJob(jobToDelete._id ?? "");
       toast.success(`Deleted job "${jobToDelete.title}" successfully.`);
       setShouldReloadJobs((prev) => prev + 1);
-
     } catch (e: unknown) {
       const error = e as AxiosError<ErrorResponse>;
-      const message = error.response?.data?.message || "Failed to delete job (unknown error)";
+      const message =
+        error.response?.data?.message || "Failed to delete job (unknown error)";
       setError(message);
       toast.error(message);
     } finally {
@@ -223,7 +222,10 @@ const Home: React.FC = () => {
                   {error ? (
                     <tr>
                       <td colSpan={6}>
-                        <div className="alert alert-danger my-4 d-flex align-items-center" role="alert">
+                        <div
+                          className="alert alert-danger my-4 d-flex align-items-center"
+                          role="alert"
+                        >
                           <i className="bi bi-exclamation-triangle-fill me-2"></i>
                           {error}
                         </div>
@@ -243,9 +245,14 @@ const Home: React.FC = () => {
                     <tr>
                       <td colSpan={6} className="text-center py-4">
                         <div className="d-flex flex-column align-items-center py-4">
-                          <i className="bi bi-search text-secondary mb-2" style={{ fontSize: "1.5rem" }}></i>
+                          <i
+                            className="bi bi-search text-secondary mb-2"
+                            style={{ fontSize: "1.5rem" }}
+                          ></i>
                           <p className="mb-1 text-secondary">No jobs found</p>
-                          <p className="small text-muted mb-0">Try adjusting your search or filters</p>
+                          <p className="small text-muted mb-0">
+                            Try adjusting your search or filters
+                          </p>
                         </div>
                       </td>
                     </tr>
@@ -258,12 +265,19 @@ const Home: React.FC = () => {
 
         {/* Create Modal */}
         <Modal id="addJobModal" title="Add New Job" onConfirm={handleSave}>
-          <JobForm setNewJobData={setNewJobData} setShouldReloadJobs={setShouldReloadJobs} />
+          <JobForm
+            setNewJobData={setNewJobData}
+            setShouldReloadJobs={setShouldReloadJobs}
+          />
         </Modal>
 
         {/* Update Modal */}
         <Modal id="editJobModal" title="Edit Job" onConfirm={handleSave}>
-          <JobForm setNewJobData={setNewJobData} setShouldReloadJobs={setShouldReloadJobs} jobToEdit={jobToEdit} />
+          <JobForm
+            setNewJobData={setNewJobData}
+            setShouldReloadJobs={setShouldReloadJobs}
+            jobToEdit={jobToEdit}
+          />
         </Modal>
 
         {/* Delete Modal */}
@@ -275,14 +289,19 @@ const Home: React.FC = () => {
         >
           <div className="text-center p-4">
             <div className="mb-4">
-              <i className="bi bi-exclamation-triangle text-danger" style={{ fontSize: "3rem" }}></i>
+              <i
+                className="bi bi-exclamation-triangle text-danger"
+                style={{ fontSize: "3rem" }}
+              ></i>
             </div>
             <h4 className="mb-3">Delete Job</h4>
             <p className="mb-0">
               Are you sure you want to delete{" "}
               <strong className="text-danger">{jobToDelete?.title}</strong>?
             </p>
-            <p className="text-muted small mt-2">This action cannot be undone.</p>
+            <p className="text-muted small mt-2">
+              This action cannot be undone.
+            </p>
           </div>
         </Modal>
       </div>

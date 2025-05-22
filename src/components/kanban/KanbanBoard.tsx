@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ColumnContainer from "./ColumnContainer";
-import type { CandidateType } from "../../types/types";
+import type { CandidateType } from "../../models/Candidate";
 
 const KanbanBoard = () => {
   // Mock Candidate Data
