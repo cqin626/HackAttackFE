@@ -17,21 +17,23 @@ interface Message {
 
 interface Props {
   messages: Message[];
+  onReply: (receiverEmail: string) => void;
 }
 
-const Messages: React.FC<Props> = ({ messages }) => {
+const Messages: React.FC<Props> = ({ messages, onReply }) => {
   return (
-    <div className="space-y-4">
+    <div>
       {messages.map((msg, index) => (
-        <div key={index} className="border p-4 rounded shadow">
+        <div key={index} className="border p-3 rounded shadow mb-4">
           <p><strong>From:</strong> {msg.from}</p>
           <p><strong>Subject:</strong> {msg.subject}</p>
           <p><strong>Received At:</strong> {new Date(msg.receivedAt).toLocaleString()}</p>
           <p><strong>Content:</strong> {msg.body}</p>
+
           {msg.attachments.length > 0 && (
             <div>
               <p><strong>Attachments:</strong></p>
-              <ul className="list-disc ml-6">
+              <ul className="list-unstyled ms-3">
                 {msg.attachments.map((att, i) => (
                   <li key={i}>
                     <a
@@ -39,7 +41,7 @@ const Messages: React.FC<Props> = ({ messages }) => {
                       download={att.filename}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 underline"
+                      className="text-primary text-decoration-underline"
                     >
                       {att.filename} ({att.mimeType})
                     </a>
@@ -48,6 +50,13 @@ const Messages: React.FC<Props> = ({ messages }) => {
               </ul>
             </div>
           )}
+
+          <button
+            onClick={() => onReply(msg.from)}
+            className="btn btn-primary mt-3"
+          >
+            Reply
+          </button>
         </div>
       ))}
     </div>
