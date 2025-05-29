@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import Messages from "../components/Messages";
 import ComposeDialog from "../components/ComposeDialog";
-import { fetchMessages, syncMessages } from "../services/messageService";
+import { fetchMessages, syncMessages, deleteMessage } from "../services/messageService";
 import type { Message } from "../types/messageType";
 import api from "../api/apiConfig";
 
@@ -27,34 +27,43 @@ const MessagePage = () => {
     syncAndFetch();
   }, []);
 
-  
-const handleSendEmail = async (email: {
-  to: string;
-  subject: string;
-  body: string;
-  attachments: File[];
-}) => {
-  try {
-    const formData = new FormData();
-    formData.append("receiverEmail", email.to);   // changed key here
-    formData.append("subject", email.subject);
-    formData.append("content", email.body);       // changed key here
-    email.attachments.forEach((file) => {
-      formData.append("attachments", file);
-    });
+  const handleSendEmail = async (email: {
+    to: string;
+    subject: string;
+    body: string;
+    attachments: File[];
+  }) => {
+    try {
+      const formData = new FormData();
+      formData.append("receiverEmail", email.to);
+      formData.append("subject", email.subject);
+      formData.append("content", email.body);
+      email.attachments.forEach((file) => {
+        formData.append("attachments", file);
+      });
 
-    await api.post("/messages/send", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data", // ✅ override just for this request
-      },
-    });
+      await api.post("/messages/send", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-    alert("Email sent!");
+      alert("Email sent!");
+    } catch (err) {
+      console.error("Error sending email:", err);
+      alert("Failed to send email.");
+    }
+  };
+
+  const handleDeleteMessage = async (id: string) => {
+    try {
+    await deleteMessage(id);
+    setMessages(prev => prev.filter(msg => msg.messageId !== id)); // or use `_id` if Mongo
+    alert("Message deleted successfully.");
   } catch (err) {
-    console.error("Error sending email:", err);
-    alert("Failed to send email.");
+    console.error("Error deleting message:", err);
+    alert("Failed to delete message.");
   }
-};
+  };
+
   return (
     <>
       <Navbar />
@@ -67,7 +76,11 @@ const handleSendEmail = async (email: {
             </div>
           </div>
         ) : (
-          <Messages messages={messages} onReply={setReplyEmail} />
+          <Messages
+            messages={messages}
+            onReply={setReplyEmail}
+            onDelete={handleDeleteMessage}
+          />
         )}
       </div>
 

@@ -18,9 +18,10 @@ interface Message {
 interface Props {
   messages: Message[];
   onReply: (receiverEmail: string) => void;
+  onDelete: (id: string) => void;
 }
 
-const Messages: React.FC<Props> = ({ messages, onReply }) => {
+const Messages: React.FC<Props> = ({ messages, onReply, onDelete }) => {
   return (
     <div>
       {messages.map((msg, index) => (
@@ -51,12 +52,20 @@ const Messages: React.FC<Props> = ({ messages, onReply }) => {
             </div>
           )}
 
-          <button
-            onClick={() => onReply(msg.from)}
-            className="btn btn-primary mt-3"
-          >
-            Reply
-          </button>
+          <div className="mt-3 d-flex gap-2">
+            <button
+              onClick={() => onReply(msg.from)}
+              className="btn btn-primary"
+            >
+              Reply
+            </button>
+            <button
+              onClick={() => onDelete(msg.messageId)}
+              className="btn btn-danger"
+            >
+              Delete
+            </button>
+          </div>
         </div>
       ))}
     </div>

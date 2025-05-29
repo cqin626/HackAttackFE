@@ -13,3 +13,15 @@ export const fetchMessages = async (): Promise<Message[]> => {
   const response = await axios.get('/messages/db-messages'); // no email param
   return response.data;
 };
+
+
+export const deleteMessage = async (id: string): Promise<void> => {
+  const response = await axios.delete(`/messages/delete/${id}`, {
+    params: { byMessageId: true }, // if you're using Gmail messageId; change to false if MongoDB _id
+    withCredentials: true,
+  });
+
+  if (response.status !== 200) {
+    throw new Error("Failed to delete message");
+  }
+};
