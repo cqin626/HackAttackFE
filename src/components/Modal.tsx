@@ -1,6 +1,3 @@
-import React, { useEffect, useRef } from "react";
-import { Modal as BootstrapModal } from "bootstrap";
-
 interface ModalProps {
   id: string;
   title: string;
@@ -10,14 +7,6 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ id, title, children, btnText = "Save", onConfirm }) => {
-  const modalRef = useRef<HTMLDivElement | null>(null);
-  const bsModalRef = useRef<BootstrapModal | null>(null);
-
-  useEffect(() => {
-    if (modalRef.current) {
-      bsModalRef.current = new BootstrapModal(modalRef.current);
-    }
-  }, []);
 
   return (
     <div
@@ -26,7 +15,6 @@ const Modal: React.FC<ModalProps> = ({ id, title, children, btnText = "Save", on
       tabIndex={-1}
       aria-labelledby={`${id}Label`}
       aria-hidden="true"
-      ref={modalRef}
     >
       <div className="modal-dialog modal-dialog-centered modal-lg">
         <div className="modal-content">

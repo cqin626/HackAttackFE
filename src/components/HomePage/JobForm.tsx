@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createJob } from "../../services/jobService.ts";
+import { createJob, updateJob } from "../../services/jobService.ts";
 import toast from "react-hot-toast";
 import Spinner from "../Spinner.tsx";
 import { Modal as BootstrapModal } from "bootstrap";
@@ -11,34 +11,51 @@ type JobFormProps = {
   jobToEdit?: JobType | null;
 };
 
-const JobForm: React.FC<JobFormProps> = ({
-  setNewJobData,
-  setShouldReloadJobs,
-  jobToEdit,
-}) => {
+const JobForm: React.FC<JobFormProps> = ({ setNewJobData, setShouldReloadJobs, jobToEdit }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [jobId, setJobId] = useState<string | null>(null);
 
-  // form fields
-  const [title, setTitle] = useState("");
-  const [employmentType, setEmploymentType] = useState("");
-  const [description, setDescription] = useState("");
-  const [requirements, setRequirements] = useState("");
-  const [minSalary, setMinSalary] = useState<number | string>("");
-  const [maxSalary, setMaxSalary] = useState<number | string>("");
-  const [currency, setCurrency] = useState("MYR");
-  const [status, setStatus] = useState("Open");
+  const [formData, setFormData] = useState({
+    title: "",
+    employmentType: "",
+    description: "",
+    requirements: "",
+    minSalary: "",
+    maxSalary: "",
+    currency: "MYR",
+    status: "Open",
+  });
 
+  // Set editing state and form data when jobToEdit changes
   useEffect(() => {
-    if (jobToEdit) {
-      setTitle(jobToEdit.title);
-      setEmploymentType(jobToEdit.employmentType);
-      setDescription(jobToEdit.description);
-      setRequirements(jobToEdit.requirements.join(", "));
-      setMinSalary(jobToEdit.salaryRange.min);
-      setMaxSalary(jobToEdit.salaryRange.max);
-      setCurrency(jobToEdit.salaryRange.currency);
-      setStatus(jobToEdit.status);
+    if (jobToEdit && jobToEdit._id) {
+      setIsEditing(true);
+      setJobId(jobToEdit._id);
+      setFormData({
+        title: jobToEdit.title || "",
+        employmentType: jobToEdit.employmentType || "",
+        description: jobToEdit.description || "",
+        requirements: jobToEdit.requirements?.join(", ") || "",
+        minSalary: jobToEdit.salaryRange?.min?.toString() || "",
+        maxSalary: jobToEdit.salaryRange?.max?.toString() || "",
+        currency: jobToEdit.salaryRange?.currency || "MYR",
+        status: jobToEdit.status || "Open",
+      });
+    } else {
+      setIsEditing(false);
+      setJobId(null);
+      setFormData({
+        title: "",
+        employmentType: "",
+        description: "",
+        requirements: "",
+        minSalary: "",
+        maxSalary: "",
+        currency: "MYR",
+        status: "Open",
+      });
     }
   }, [jobToEdit]);
 
@@ -48,65 +65,85 @@ const JobForm: React.FC<JobFormProps> = ({
     }
   }, [error]);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setFormData({
+      ...formData,
+      [event.target.name]: event.target.value,
+    });
+  };
 
-    const form = event.currentTarget;
-    const formData = new FormData(form);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-    const data: { [key: string]: FormDataEntryValue } = {};
-    for (const [key, value] of formData.entries()) {
-      data[key] = value;
-    }
-
-    const salaryRange = {
-      min: Number(data["salaryRange[min]"]),
-      max: Number(data["salaryRange[max]"]),
-      currency: (data["salaryRange[currency]"] as string) || "MYR",
-    };
-
-    const requirements = data.requirements
-      ? (data.requirements as string)
-          .split(",")
-          .map((r) => r.trim())
-          .filter(Boolean)
-      : [];
-
-    const jobDetails: Omit<JobType, "_id" | "createdAt"> = {
-      title: data.title as string,
-      employmentType: data.employmentType as JobType["employmentType"],
-      description: data.description as string,
-      requirements,
-      salaryRange,
-      status: data.status as JobType["status"],
+    // Convert formData into JobType object
+    const jobDetails: JobType = {
+      title: formData.title,
+      employmentType: formData.employmentType as JobType["employmentType"],
+      description: formData.description,
+      requirements: formData.requirements
+        .split(",")
+        .map((req) => req.trim())
+        .filter(Boolean),
+      salaryRange: {
+        min: parseFloat(formData.minSalary) || 0,
+        max: parseFloat(formData.maxSalary) || 0,
+        currency: formData.currency,
+      },
+      status: formData.status as JobType["status"],
     };
 
     setNewJobData(jobDetails);
 
     try {
       setLoading(true);
-      await createJob(jobDetails);
+      let modalElement;
+
+      if (isEditing && jobId) {
+        await updateJob(jobId, jobDetails);
+        modalElement = document.getElementById("editJobModal");
+        toast.success("Job Updated");
+      } else {
+        await createJob(jobDetails);
+        modalElement = document.getElementById("addJobModal");
+        toast.success("Job Added");
+      }
+
       setShouldReloadJobs((prev) => prev + 1);
-      const modalElement = document.getElementById("addJobModal");
+
       if (modalElement) {
         const modal = BootstrapModal.getInstance(modalElement);
         modal?.hide();
-        toast.success("Job Added");
+      }
+
+      // Reset form only for creating new jobs
+      if (!isEditing) {
+        setFormData({
+          title: "",
+          employmentType: "",
+          description: "",
+          requirements: "",
+          minSalary: "",
+          maxSalary: "",
+          currency: "MYR",
+          status: "Open",
+        });
       }
     } catch (error) {
-      setError(`Failed to add job: ${error}`);
+      setError(`Failed to ${isEditing ? "update" : "add"} job: ${error}`);
     } finally {
       setLoading(false);
     }
   };
 
   if (loading) {
-    return <Spinner message="Adding Jobs" />;
+    return <Spinner message={isEditing ? "Updating Job..." : "Adding Job..."} />;
   }
 
   return (
     <div className="job-form-container">
-      <form id="jobForm" onSubmit={handleSubmit} noValidate>
+      <form id="jobForm" onSubmit={handleSubmit}>
+        <h1>{isEditing ? "Edit Job" : "Add New Job"}</h1>
+
         {/* Job Title */}
         <div className="mb-4">
           <label htmlFor="title" className="form-label">
@@ -117,9 +154,8 @@ const JobForm: React.FC<JobFormProps> = ({
             className="form-control"
             id="title"
             name="title"
-            required
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            value={formData.title}
+            onChange={handleChange}
             placeholder="Enter job title"
           />
         </div>
@@ -133,11 +169,12 @@ const JobForm: React.FC<JobFormProps> = ({
             className="form-select"
             id="employmentType"
             name="employmentType"
-            required
-            value={employmentType}
-            onChange={(e) => setEmploymentType(e.target.value)}
+            value={formData.employmentType}
+            onChange={handleChange}
           >
-            <option value="">Select type</option>
+            <option value="" disabled>
+              Select type
+            </option>
             <option value="Full-Time">Full-Time</option>
             <option value="Part-Time">Part-Time</option>
             <option value="Contract">Contract</option>
@@ -154,9 +191,8 @@ const JobForm: React.FC<JobFormProps> = ({
             className="form-control"
             id="description"
             name="description"
-            required
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={formData.description}
+            onChange={handleChange}
             rows={4}
             placeholder="Enter job description"
           ></textarea>
@@ -173,8 +209,8 @@ const JobForm: React.FC<JobFormProps> = ({
             id="requirements"
             name="requirements"
             placeholder="e.g. JavaScript, Node.js, MongoDB"
-            value={requirements}
-            onChange={(e) => setRequirements(e.target.value)}
+            value={formData.requirements}
+            onChange={handleChange}
           />
         </div>
 
@@ -190,10 +226,10 @@ const JobForm: React.FC<JobFormProps> = ({
                 type="number"
                 className="form-control"
                 id="minSalary"
-                name="salaryRange[min]"
+                name="minSalary"
                 min="0"
-                value={minSalary}
-                onChange={(e) => setMinSalary(e.target.value)}
+                value={formData.minSalary}
+                onChange={handleChange}
                 placeholder="0"
               />
             </div>
@@ -205,10 +241,10 @@ const JobForm: React.FC<JobFormProps> = ({
                 type="number"
                 className="form-control"
                 id="maxSalary"
-                name="salaryRange[max]"
+                name="maxSalary"
                 min="0"
-                value={maxSalary}
-                onChange={(e) => setMaxSalary(e.target.value)}
+                value={formData.maxSalary}
+                onChange={handleChange}
                 placeholder="0"
               />
             </div>
@@ -219,9 +255,9 @@ const JobForm: React.FC<JobFormProps> = ({
               <select
                 className="form-select"
                 id="currency"
-                name="salaryRange[currency]"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
+                name="currency"
+                value={formData.currency}
+                onChange={handleChange}
               >
                 <option value="MYR">MYR</option>
                 <option value="USD">USD</option>
@@ -242,8 +278,8 @@ const JobForm: React.FC<JobFormProps> = ({
             className="form-select"
             id="status"
             name="status"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
+            value={formData.status}
+            onChange={handleChange}
           >
             <option value="Open">Open</option>
             <option value="Closed">Closed</option>

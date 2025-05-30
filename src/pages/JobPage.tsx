@@ -3,29 +3,65 @@ import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getJobById } from '../services/jobService';
 import type { JobType } from '../models/Job';
-import KanbanBoard from "../components/kanban/KanbanBoard";
+import KanbanBoard from "../components/JobPage/kanban/KanbanBoard";
 import Navbar from "../components/Navbar";
+import Spinner from "../components/Spinner";
+import toast from "react-hot-toast";
 
 const JobPage = () => {
   const { id } = useParams();
   const [job, setJob] = useState<JobType | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (id) {
-      getJobById(id)
-        .then(setJob)
-        .catch((err) => console.error('Error loading job:', err));
-    }
+    const fetchJob = async () => {
+      if (!id) return;
+
+      try {
+        const data = await getJobById(id);
+        setJob(data);
+      } catch (err) {
+        setError("Failed to load jobs: " + err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJob();
   }, [id]);
 
-  if (!job) return (
-    <div className="d-flex justify-content-center align-items-center vh-100">
-      <div className="text-center">
-        <div className="spinner-border text-primary" role="status" />
-        <p className="mt-3 text-muted">Loading job details...</p>
+  // show error toast if any
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="container py-5">
+          <Spinner message="Loading Job..." />
+        </div>
+      </>
+    );
+  }
+
+  if (job === null) {
+    return (
+      <div className="bg-light min-vh-100">
+        <Navbar />
+        <div
+          className="alert alert-danger my-4 d-flex align-items-center m-5"
+          role="alert"
+        >
+          <i className="bi bi-exclamation-triangle-fill me-2"></i>
+          {error}
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   return (
     <div className="bg-light min-vh-100">

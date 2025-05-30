@@ -5,7 +5,7 @@ import Modal from "../components/Modal";
 import JobForm from "../components/HomePage/JobForm";
 import Job from "../components/HomePage/Job";
 import { Modal as BootstrapModal } from "bootstrap";
-import { deleteJob, getAllJobs, updateJob } from "../services/jobService";
+import { deleteJob, getAllJobs } from "../services/jobService";
 import toast from "react-hot-toast";
 import type { JobType } from "../models/Job";
 import Spinner from "../components/Spinner";
@@ -88,7 +88,7 @@ const Home: React.FC = () => {
   const handleAddJobClick = () => {
     const modalElement = document.getElementById("addJobModal");
     if (modalElement) {
-      const modal = new BootstrapModal(modalElement);
+      const modal = BootstrapModal.getInstance(modalElement) || new BootstrapModal(modalElement);
       modal.show();
     }
   };
@@ -111,7 +111,7 @@ const Home: React.FC = () => {
 
     const modalElement = document.getElementById("editJobModal");
     if (modalElement) {
-      const modal = new BootstrapModal(modalElement);
+      const modal = BootstrapModal.getInstance(modalElement) || new BootstrapModal(modalElement);
       modal.show();
     }
   };
@@ -145,13 +145,13 @@ const Home: React.FC = () => {
     }
   };
 
+  // Delete
   const handleDeleteRequest = (job: JobType) => {
     setJobToDelete(job);
 
-    // show confirmation modal
     const modalEl = document.getElementById("deleteJobModal");
     if (modalEl) {
-      const modal = new BootstrapModal(modalEl);
+      const modal = BootstrapModal.getInstance(modalEl) || new BootstrapModal(modalEl);
       modal.show();
     }
   };
