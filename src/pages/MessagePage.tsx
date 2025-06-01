@@ -10,6 +10,7 @@ const MessagePage = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [replyEmail, setReplyEmail] = useState<string | null>(null);
+  const [selectedSender, setSelectedSender] = useState<string | null>(null);
 
   useEffect(() => {
     const syncAndFetch = async () => {
@@ -26,6 +27,12 @@ const MessagePage = () => {
 
     syncAndFetch();
   }, []);
+
+  const groupedMessages = messages.reduce((acc, msg) => {
+    if (!acc[msg.from]) acc[msg.from] = [];
+    acc[msg.from].push(msg);
+    return acc;
+  }, {} as Record<string, Message[]>);
 
   const handleSendEmail = async (email: {
     to: string;
@@ -55,20 +62,20 @@ const MessagePage = () => {
 
   const handleDeleteMessage = async (id: string) => {
     try {
-    await deleteMessage(id);
-    setMessages(prev => prev.filter(msg => msg.messageId !== id)); // or use `_id` if Mongo
-    alert("Message deleted successfully.");
-  } catch (err) {
-    console.error("Error deleting message:", err);
-    alert("Failed to delete message.");
-  }
+      await deleteMessage(id);
+      setMessages(prev => prev.filter(msg => msg.messageId !== id));
+      alert("Message deleted successfully.");
+    } catch (err) {
+      console.error("Error deleting message:", err);
+      alert("Failed to delete message.");
+    }
   };
 
   return (
     <>
       <Navbar />
-      <div className="container py-4">
-        <h1 className="h3 mb-4">Your Current Messages</h1>
+      <div className="container-fluid py-4">
+        <h1 className="h4 mb-4">Inbox</h1>
         {loading ? (
           <div className="d-flex justify-content-center my-5">
             <div className="spinner-border" role="status">
@@ -76,11 +83,36 @@ const MessagePage = () => {
             </div>
           </div>
         ) : (
-          <Messages
-            messages={messages}
-            onReply={setReplyEmail}
-            onDelete={handleDeleteMessage}
-          />
+          <div className="d-flex border rounded shadow-sm" style={{ height: "75vh" }}>
+            {/* Left Panel: Sender List */}
+            <div className="border-end p-3" style={{ width: "30%", overflowY: "auto" }}>
+              {Object.keys(groupedMessages).sort().map(sender => (
+                <div
+                  key={sender}
+                  onClick={() => setSelectedSender(sender)}
+                  className={`p-2 rounded mb-2 ${selectedSender === sender ? "bg-primary text-white" : "bg-light"}`}
+                  style={{ cursor: "pointer" }}
+                >
+                  {sender}
+                </div>
+              ))}
+            </div>
+
+            {/* Right Panel: Messages */}
+            <div className="p-3 flex-grow-1 overflow-auto">
+              {selectedSender ? (
+                <Messages
+                  messages={groupedMessages[selectedSender].sort(
+                    (a, b) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime()
+                  )}
+                  onReply={setReplyEmail}
+                  onDelete={handleDeleteMessage}
+                />
+              ) : (
+                <p className="text-muted">Select a sender to view their messages.</p>
+              )}
+            </div>
+          </div>
         )}
       </div>
 
