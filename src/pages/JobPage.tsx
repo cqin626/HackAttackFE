@@ -1,8 +1,8 @@
 import UploadResume from "../components/JobPage/UploadResume";
-import { useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { getJobById } from '../services/jobService';
-import type { JobType } from '../models/Job';
+import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getJobById } from "../services/jobService";
+import type { JobType } from "../models/Job";
 import KanbanBoard from "../components/JobPage/kanban/KanbanBoard";
 import Navbar from "../components/Navbar";
 import Spinner from "../components/Spinner";
@@ -15,22 +15,18 @@ const JobPage = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchJob = async () => {
-      if (!id) return;
+    if (!id) return;
 
-      try {
-        const data = await getJobById(id);
-        setJob(data);
-      } catch (err) {
-        setError("Failed to load jobs: " + err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchJob();
+    getJobById(id)
+      .then((data) => setJob(data))
+      .catch((err) => {
+        const message = err?.message || "An unexpected error occurred";
+        setError(message);
+      })
+      .finally(() => setLoading(false));
+      
   }, [id]);
 
-  // show error toast if any
   useEffect(() => {
     if (error) {
       toast.error(error);
@@ -57,7 +53,7 @@ const JobPage = () => {
           role="alert"
         >
           <i className="bi bi-exclamation-triangle-fill me-2"></i>
-          {error}
+          {error || "Job data not found or failed to load."}
         </div>
       </div>
     );
@@ -66,7 +62,7 @@ const JobPage = () => {
   return (
     <div className="bg-light min-vh-100">
       <Navbar />
-      
+
       <div className="container py-4">
         <div className="row">
           <div className="col-lg-8">
@@ -77,7 +73,15 @@ const JobPage = () => {
                     <h1 className="card-title fw-bold mb-1">{job.title}</h1>
                     <h6 className="text-muted">{job.employmentType}</h6>
                   </div>
-                  <span className={`badge rounded-pill fs-6 px-3 py-2 bg-${job.status === 'Open' ? 'success' : job.status === 'Paused' ? 'warning' : 'secondary'}`}>
+                  <span
+                    className={`badge rounded-pill fs-6 px-3 py-2 bg-${
+                      job.status === "Open"
+                        ? "success"
+                        : job.status === "Paused"
+                        ? "warning"
+                        : "secondary"
+                    }`}
+                  >
                     {job.status}
                   </span>
                 </div>
@@ -86,12 +90,19 @@ const JobPage = () => {
                   {job.salaryRange && (
                     <div className="d-inline-block me-4">
                       <i className="bi bi-currency-dollar me-1 text-primary"></i>
-                      <span>{job.salaryRange.currency} {job.salaryRange.min?.toLocaleString()} - {job.salaryRange.max?.toLocaleString()}</span>
+                      <span>
+                        {job.salaryRange.currency}{" "}
+                        {job.salaryRange.min?.toLocaleString()} -{" "}
+                        {job.salaryRange.max?.toLocaleString()}
+                      </span>
                     </div>
                   )}
                   <div className="d-inline-block">
                     <i className="bi bi-calendar-date me-1 text-primary"></i>
-                    <span>Posted: {new Date(job.createdAt ?? '').toLocaleDateString()}</span>
+                    <span>
+                      Posted:{" "}
+                      {new Date(job.createdAt ?? "").toLocaleDateString()}
+                    </span>
                   </div>
                 </div>
 
@@ -105,7 +116,10 @@ const JobPage = () => {
                     <h5 className="fw-bold text-primary mb-3">Requirements</h5>
                     <ul className="list-group list-group-flush">
                       {job.requirements.map((req, index) => (
-                        <li key={index} className="list-group-item ps-0 border-0 d-flex align-items-center">
+                        <li
+                          key={index}
+                          className="list-group-item ps-0 border-0 d-flex align-items-center"
+                        >
                           <i className="bi bi-check-circle-fill text-success me-2"></i>
                           <span>{req}</span>
                         </li>
@@ -116,7 +130,7 @@ const JobPage = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="col-lg-4">
             <div className="card border-0 shadow-sm rounded-3">
               <div className="card-body p-4">
@@ -126,7 +140,7 @@ const JobPage = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="mt-4">
           <KanbanBoard />
         </div>
