@@ -24,7 +24,6 @@ const JobPage = () => {
         setError(message);
       })
       .finally(() => setLoading(false));
-      
   }, [id]);
 
   useEffect(() => {
