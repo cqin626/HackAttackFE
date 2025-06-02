@@ -1,5 +1,5 @@
 export type CandidateType = {
-  id: string;
+  _id: string;
   name: string;
   gender: string;
   email: string;
@@ -24,7 +24,4 @@ export type CandidateType = {
     proficiency: string;
   }[];
   resumeUrl: string;
-  positionApplied: string;
-  applicationDate: string;
-  status: string;
 };
