@@ -65,16 +65,16 @@ const KanbanBoard = () => {
     );
   }, [candidates]);
 
-  if (candidates.length === 0) {
-    return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="text-center">
-          <div className="spinner-border text-primary" role="status" />
-          <p className="mt-3 text-muted">Loading candidates ...</p>
-        </div>
-      </div>
-    );
-  }
+  // if (candidates.length === 0) {
+  //   return (
+  //     <div className="d-flex justify-content-center align-items-center vh-100">
+  //       <div className="text-center">
+  //         <div className="spinner-border text-primary" role="status" />
+  //         <p className="mt-3 text-muted">Loading candidates ...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <>

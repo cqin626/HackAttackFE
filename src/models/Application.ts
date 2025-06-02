@@ -1,8 +1,7 @@
+import type { CandidateType } from "./Candidate";
+
 export type ApplicationType = {
-  user: {
-    _id: string;
-    email: string;
-  }
+  applicant: CandidateType
   appliedAt: string;
   status: string;
 };

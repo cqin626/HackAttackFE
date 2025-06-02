@@ -32,7 +32,7 @@ const ColumnContainer: React.FC<ColumnContainerProps> = ({
           <div className="candidate-list">
             {applications.map(applications => (
               <div 
-                key={applications.user._id} 
+                key={applications.applicant._id} 
                 className="candidate-card p-3 border-bottom hover-shadow transition-all"
                 style={{ cursor: 'pointer' }}
               ><CandidateCard applications={applications}></CandidateCard>
