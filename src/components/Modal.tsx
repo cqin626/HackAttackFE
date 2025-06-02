@@ -6,8 +6,13 @@ interface ModalProps {
   btnText?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ id, title, children, btnText = "Save", onConfirm }) => {
-
+const Modal: React.FC<ModalProps> = ({
+  id,
+  title,
+  children,
+  btnText = "Save",
+  onConfirm,
+}) => {
   return (
     <div
       className="modal fade"
@@ -31,9 +36,9 @@ const Modal: React.FC<ModalProps> = ({ id, title, children, btnText = "Save", on
           </div>
           <div className="modal-body p-4">{children}</div>
           <div className="modal-footer">
-            <button 
-              type="button" 
-              className="btn btn-light" 
+            <button
+              type="button"
+              className="btn btn-light"
               data-bs-dismiss="modal"
             >
               Cancel
@@ -41,7 +46,13 @@ const Modal: React.FC<ModalProps> = ({ id, title, children, btnText = "Save", on
             {onConfirm && (
               <button
                 type="button"
-                className={`btn ${btnText.toLowerCase().includes("delete") ? "btn-danger" : "btn-primary"}`}
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                className={`btn ${
+                  btnText.toLowerCase().includes("delete")
+                    ? "btn-danger"
+                    : "btn-primary"
+                }`}
                 onClick={onConfirm}
               >
                 {btnText}
