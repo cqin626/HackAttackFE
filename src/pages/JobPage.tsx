@@ -29,6 +29,7 @@ const JobPage = () => {
   useEffect(() => {
     if (error) {
       toast.error(error);
+      setError("");
     }
   }, [error]);
 

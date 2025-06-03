@@ -46,6 +46,7 @@ const Home: React.FC = () => {
   useEffect(() => {
     if (error) {
       toast.error(error);
+      setError("");
     }
   }, [error]);
 
