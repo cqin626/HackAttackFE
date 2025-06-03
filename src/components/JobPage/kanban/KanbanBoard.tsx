@@ -23,9 +23,23 @@ const KanbanBoard = () => {
     }
   }, [id]);
 
+  function getCandidateEmailsByStatus(status: string): string[] {
+    const candidates = groupedCandidates[status.toLowerCase()] || [];
+
+    return candidates
+      .map((candidate) => candidate.applicant?.email)
+      .filter((email): email is string => Boolean(email));
+  }
+
   const columnConfigs: Record<
     string,
-    { buttonText: string; onClick: () => void; icon: string; color: string }
+    {
+      buttonText: string;
+      onClick: () => void;
+      icon: string;
+      color: string;
+      modalTarget?: string;
+    }
   > = {
     Applied: {
       buttonText: "Filter",
@@ -41,9 +55,13 @@ const KanbanBoard = () => {
     },
     Verified: {
       buttonText: "Schedule Interview",
-      onClick: () => console.log("Verifying Candidate Info"),
+      onClick: () => {
+        const emails = getCandidateEmailsByStatus("verified");
+        console.log(emails);
+      },
       icon: "bi-calendar-event",
       color: "success",
+      modalTarget: "#scheduleInterviewBtn"
     },
     "Interview Scheduled": {
       buttonText: "Mark Interviewed",
@@ -64,17 +82,6 @@ const KanbanBoard = () => {
       {}
     );
   }, [candidates]);
-
-  // if (candidates.length === 0) {
-  //   return (
-  //     <div className="d-flex justify-content-center align-items-center vh-100">
-  //       <div className="text-center">
-  //         <div className="spinner-border text-primary" role="status" />
-  //         <p className="mt-3 text-muted">Loading candidates ...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   return (
     <>
@@ -102,7 +109,7 @@ const KanbanBoard = () => {
               const config = columnConfigs[col];
               if (!config) return null;
 
-              const { buttonText, onClick, icon, color } = config;
+              const { buttonText, onClick, icon, color, modalTarget } = config;
               const applications = groupedCandidates[col.toLowerCase()] || [];
 
               return (
@@ -114,6 +121,7 @@ const KanbanBoard = () => {
                     applications={applications}
                     icon={icon}
                     color={color}
+                    modalTarget={modalTarget}
                   />
                 </div>
               );
@@ -131,6 +139,17 @@ const KanbanBoard = () => {
       >
         {/* Modal content goes here */}
         <p className="mb-0">Test</p>
+      </Modal>
+      <Modal
+        id="scheduleInterviewBtn"
+        title="Schedule Group Interview"
+        btnText="Save"
+        onConfirm={() => {
+          alert("schedule");
+        }}
+      >
+        {/* Modal content goes here */}
+        <p>Create event form</p>
       </Modal>
     </>
   );

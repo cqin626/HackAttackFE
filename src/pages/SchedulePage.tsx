@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import type { AttendeeType, EventType } from "../models/Event";
 import Spinner from "../components/Spinner";
 import toast from "react-hot-toast";
+import axios from "axios";
 
 interface FormData {
   summary: string;
@@ -34,6 +35,7 @@ export default function CalendarTestPage() {
   useEffect(() => {
     if (error) {
       toast.error(error);
+      setError("");
     }
   }, [error]);
 
@@ -42,8 +44,20 @@ export default function CalendarTestPage() {
       const data = await getEvents(email);
       setEvents(data);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      toast.error(`Failed to fetch events: ${errorMessage}`);
+      let errorMessage = 'An unexpected error occurred';
+
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) {
+          errorMessage = 'Session expired or unauthorized. Please log in again.';
+        } else if (err.response?.data?.error) {
+          errorMessage = err.response.data.error;
+        } else {
+          errorMessage = err.message;
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(`Failed to fetch events: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -79,28 +93,42 @@ export default function CalendarTestPage() {
   };
 
   const handleCreate = async () => {
-    if (!validateForm()) return;
+  if (!validateForm()) return;
 
-    setIsCreating(true);
-    try {
-      await createEvent(formData);
-      toast.success("Event created!");
+  setIsCreating(true);
+  try {
+    const parsedEmails = formData.email
+      .split(";")
+      .map((e) => e.trim())
+      .filter((e) => e);
 
-      // Reset form
-      setFormData(prev => ({
-        summary: "",
-        description: "",
-        start: "",
-        end: "",
-        email: prev.email // Keep email for convenience
-      }));
-      fetchEvents(formData.email);
-    } catch (err) {
-      setError("Failed to create event: " + err);
-    } finally {
-      setIsCreating(false);
-    }
-  };
+    const payload = {
+      summary: formData.summary,
+      description: formData.description,
+      start: formData.start,
+      end: formData.end,
+      email: parsedEmails, // array of emails
+    };
+
+    await createEvent(payload);
+    toast.success("Event created!");
+
+    setFormData((prev) => ({
+      summary: "",
+      description: "",
+      start: "",
+      end: "",
+      email: prev.email, // optionally keep for reuse
+    }));
+
+    fetchEvents(parsedEmails[0]); // TODO: get current logged in user's email
+  } catch (err) {
+    setError("Failed to create event: " + err);
+  } finally {
+    setIsCreating(false);
+  }
+};
+
 
   return (
     <>
@@ -112,7 +140,7 @@ export default function CalendarTestPage() {
           <input name="description" onChange={handleChange} placeholder="Description" className="border p-2" />
           <input name="start" type="datetime-local" onChange={handleChange} className="border p-2" />
           <input name="end" type="datetime-local" onChange={handleChange} className="border p-2" />
-          <input name="email" onChange={handleChange} placeholder="Attendee Email" className="border p-2" />
+          <input name="email" onChange={handleChange} placeholder="Attendee Emails" className="border p-2" />
           <button
             onClick={handleCreate}
             disabled={isCreating}
@@ -137,8 +165,8 @@ export default function CalendarTestPage() {
           <table className="table table-hover mb-0">
             <tbody>
               {events.map((event, i) => (
-                <tr>
-                  <td key={i} className="border p-2">
+                <tr key={i}>
+                  <td className="border p-2">
                     <div><strong>{event.summary}</strong></div>
                     <            div>Start: {new Date(event.start).toLocaleString()}</div>
                     <div>End: {new Date(event.end).toLocaleString()}</div>

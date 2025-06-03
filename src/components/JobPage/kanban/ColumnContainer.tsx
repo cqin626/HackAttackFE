@@ -9,6 +9,7 @@ interface ColumnContainerProps {
   onButtonClick: () => void;
   icon?: string;
   color?: string;
+  modalTarget?: string;
 }
 
 const ColumnContainer: React.FC<ColumnContainerProps> = ({
@@ -17,7 +18,8 @@ const ColumnContainer: React.FC<ColumnContainerProps> = ({
   buttonText,
   onButtonClick,
   icon = 'bi-list-check',
-  color = 'primary'
+  color = 'primary',
+  modalTarget
 }) => {
   return (
     <div className="card border-0 shadow-sm h-100">
@@ -31,8 +33,8 @@ const ColumnContainer: React.FC<ColumnContainerProps> = ({
         {applications.length > 0 ? (
           <div className="candidate-list">
             {applications.map(applications => (
-              <div 
-                key={applications.applicant._id} 
+              <div
+                key={applications.applicant._id}
                 className="candidate-card p-3 border-bottom hover-shadow transition-all"
                 style={{ cursor: 'pointer' }}
               ><CandidateCard applications={applications}></CandidateCard>
@@ -47,9 +49,12 @@ const ColumnContainer: React.FC<ColumnContainerProps> = ({
         )}
       </div>
       <div className="card-footer bg-white border-0 p-3">
-        <button 
+        <button
+          type="button"
           className={`btn btn-${color} btn-sm d-flex align-items-center justify-content-center w-100`}
           onClick={onButtonClick}
+          data-bs-toggle={modalTarget ? 'modal' : undefined}
+          data-bs-target={modalTarget}
         >
           <i className={`bi ${icon} me-1`}></i>
           {buttonText}
