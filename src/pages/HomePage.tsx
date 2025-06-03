@@ -73,16 +73,6 @@ const Home: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
-  if (loading) {
-    return (
-      <>
-        <Navbar />
-        <div className="container py-5">
-          <Spinner message="Loading Jobs..." />
-        </div>
-      </>
-    );
-  }
 
   // Create
   const handleAddJobClick = () => {
@@ -159,152 +149,158 @@ const Home: React.FC = () => {
   return (
     <>
       <Navbar />
-
-      <div className="container-fluid py-4 px-4 bg-light min-vh-100">
-        <div className="card border-0 shadow-sm mb-4">
-          <div className="card-body">
-            <div className="section-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
-              <h2 className="card-title mb-3 mb-md-0">
-                <i className="bi bi-briefcase me-2 text-primary"></i>
-                Job Listings
-              </h2>
-              <div className="d-flex flex-column flex-md-row gap-2">
-                <Button
-                  text="Add New Job"
-                  icon="plus-lg"
-                  onClick={handleAddJobClick}
-                />
-              </div>
-            </div>
-
-            <div className="row mb-4">
-              <div className="col-12 col-md-8 mb-3 mb-md-0">
-                <div className="input-group">
-                  <span className="input-group-text bg-white">
-                    <i className="bi bi-search"></i>
-                  </span>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Search jobs by title or description..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+      {loading
+        ?
+        <div className="container py-5">
+          <Spinner message="Loading Jobs..." />
+        </div>
+        :
+        <div className="container-fluid py-4 px-4 bg-light min-vh-100">
+          <div className="card border-0 shadow-sm mb-4">
+            <div className="card-body">
+              <div className="section-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+                <h2 className="card-title mb-3 mb-md-0">
+                  <i className="bi bi-briefcase me-2 text-primary"></i>
+                  Job Listings
+                </h2>
+                <div className="d-flex flex-column flex-md-row gap-2">
+                  <Button
+                    text="Add New Job"
+                    icon="plus-lg"
+                    onClick={handleAddJobClick}
                   />
                 </div>
               </div>
-              <div className="col-12 col-md-4">
-                <select
-                  className="form-select"
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                  <option value="All">All Status</option>
-                  <option value="Open">Open</option>
-                  <option value="Closed">Closed</option>
-                  <option value="Paused">Paused</option>
-                </select>
+
+              <div className="row mb-4">
+                <div className="col-12 col-md-8 mb-3 mb-md-0">
+                  <div className="input-group">
+                    <span className="input-group-text bg-white">
+                      <i className="bi bi-search"></i>
+                    </span>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Search jobs by title or description..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="col-12 col-md-4">
+                  <select
+                    className="form-select"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    <option value="All">All Status</option>
+                    <option value="Open">Open</option>
+                    <option value="Closed">Closed</option>
+                    <option value="Paused">Paused</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="table-container">
+                <table className="table table-hover mb-0">
+                  <thead>
+                    <tr>
+                      <th>Job Title</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                      <th>Salary Range</th>
+                      <th>Posted Date</th>
+                      <th className="text-end">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {error ? (
+                      <tr>
+                        <td colSpan={6}>
+                          <div
+                            className="alert alert-danger my-4 d-flex align-items-center"
+                            role="alert"
+                          >
+                            <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                            {error}
+                          </div>
+                        </td>
+                      </tr>
+                    ) : filteredJobs.length > 0 ? (
+                      filteredJobs.map((job) => (
+                        <Job
+                          key={job._id}
+                          job={job}
+                          onEdit={() => handleEditRequest(job)}
+                          onDelete={() => handleDeleteRequest(job)}
+                          onClick={() => viewJobDetails(job)}
+                        />
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="text-center py-4">
+                          <div className="d-flex flex-column align-items-center py-4">
+                            <i
+                              className="bi bi-search text-secondary mb-2"
+                              style={{ fontSize: "1.5rem" }}
+                            ></i>
+                            <p className="mb-1 text-secondary">No jobs found</p>
+                            <p className="small text-muted mb-0">
+                              Try adjusting your search or filters
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
-
-            <div className="table-container">
-              <table className="table table-hover mb-0">
-                <thead>
-                  <tr>
-                    <th>Job Title</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th>Salary Range</th>
-                    <th>Posted Date</th>
-                    <th className="text-end">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {error ? (
-                    <tr>
-                      <td colSpan={6}>
-                        <div
-                          className="alert alert-danger my-4 d-flex align-items-center"
-                          role="alert"
-                        >
-                          <i className="bi bi-exclamation-triangle-fill me-2"></i>
-                          {error}
-                        </div>
-                      </td>
-                    </tr>
-                  ) : filteredJobs.length > 0 ? (
-                    filteredJobs.map((job) => (
-                      <Job
-                        key={job._id}
-                        job={job}
-                        onEdit={() => handleEditRequest(job)}
-                        onDelete={() => handleDeleteRequest(job)}
-                        onClick={() => viewJobDetails(job)}
-                      />
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={6} className="text-center py-4">
-                        <div className="d-flex flex-column align-items-center py-4">
-                          <i
-                            className="bi bi-search text-secondary mb-2"
-                            style={{ fontSize: "1.5rem" }}
-                          ></i>
-                          <p className="mb-1 text-secondary">No jobs found</p>
-                          <p className="small text-muted mb-0">
-                            Try adjusting your search or filters
-                          </p>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
           </div>
+
+          {/* Create Modal */}
+          <Modal id="addJobModal" title="Add New Job" onConfirm={handleSave}>
+            <JobForm
+              setNewJobData={setNewJobData}
+              setShouldReloadJobs={setShouldReloadJobs}
+            />
+          </Modal>
+
+          {/* Update Modal */}
+          <Modal id="editJobModal" title="Edit Job" onConfirm={handleSave}>
+            <JobForm
+              setNewJobData={setNewJobData}
+              setShouldReloadJobs={setShouldReloadJobs}
+              jobToEdit={jobToEdit}
+            />
+          </Modal>
+
+          {/* Delete Modal */}
+          <Modal
+            id="deleteJobModal"
+            title="Confirm Deletion"
+            onConfirm={confirmDelete}
+            btnText="Delete"
+          >
+            <div className="text-center p-4">
+              <div className="mb-4">
+                <i
+                  className="bi bi-exclamation-triangle text-danger"
+                  style={{ fontSize: "3rem" }}
+                ></i>
+              </div>
+              <h4 className="mb-3">Delete Job</h4>
+              <p className="mb-0">
+                Are you sure you want to delete{" "}
+                <strong className="text-danger">{jobToDelete?.title}</strong>?
+              </p>
+              <p className="text-muted small mt-2">
+                This action cannot be undone.
+              </p>
+            </div>
+          </Modal>
         </div>
-
-        {/* Create Modal */}
-        <Modal id="addJobModal" title="Add New Job" onConfirm={handleSave}>
-          <JobForm
-            setNewJobData={setNewJobData}
-            setShouldReloadJobs={setShouldReloadJobs}
-          />
-        </Modal>
-
-        {/* Update Modal */}
-        <Modal id="editJobModal" title="Edit Job" onConfirm={handleSave}>
-          <JobForm
-            setNewJobData={setNewJobData}
-            setShouldReloadJobs={setShouldReloadJobs}
-            jobToEdit={jobToEdit}
-          />
-        </Modal>
-
-        {/* Delete Modal */}
-        <Modal
-          id="deleteJobModal"
-          title="Confirm Deletion"
-          onConfirm={confirmDelete}
-          btnText="Delete"
-        >
-          <div className="text-center p-4">
-            <div className="mb-4">
-              <i
-                className="bi bi-exclamation-triangle text-danger"
-                style={{ fontSize: "3rem" }}
-              ></i>
-            </div>
-            <h4 className="mb-3">Delete Job</h4>
-            <p className="mb-0">
-              Are you sure you want to delete{" "}
-              <strong className="text-danger">{jobToDelete?.title}</strong>?
-            </p>
-            <p className="text-muted small mt-2">
-              This action cannot be undone.
-            </p>
-          </div>
-        </Modal>
-      </div>
+      }
     </>
   );
 };
