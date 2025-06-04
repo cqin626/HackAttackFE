@@ -16,6 +16,7 @@ type ScheduleFormProps = {
   verifiedCandidateEmails: string[],
 };
 
+
 export default function ScheduleForm({ job, verifiedCandidateEmails }: ScheduleFormProps) {
   const [formData, setFormData] = useState<FormData>({
     summary: "",
@@ -31,6 +32,19 @@ export default function ScheduleForm({ job, verifiedCandidateEmails }: ScheduleF
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
+
+  useEffect(() => {
+    if (job) {
+      setFormData({
+        summary: "Interview - " + job.title,
+        description: `Notes:\n\nPlease join the meeting 5 minutes early.\n\nEnsure all materials and questions are prepared in advance.\n\nFeedback to be submitted post-interview using the internal evaluation form.`,
+        start: "",
+        end: "",
+        email: verifiedCandidateEmails.join(";"),
+      });
+    }
+  }, [job, verifiedCandidateEmails]);
+
 
   useEffect(() => {
     if (error) {
@@ -113,7 +127,7 @@ export default function ScheduleForm({ job, verifiedCandidateEmails }: ScheduleF
               className="form-control"
               id="summary"
               name="summary"
-              value={"Interview - " + job.title}
+              value={formData.summary}
               onChange={handleChange}
               placeholder="Enter Summary"
             />
@@ -126,7 +140,7 @@ export default function ScheduleForm({ job, verifiedCandidateEmails }: ScheduleF
               className="form-control"
               id="description"
               name="description"
-              value={`Notes:\n\nPlease join the meeting 5 minutes early.\n\nEnsure all materials and questions are prepared in advance.\n\nFeedback to be submitted post-interview using the internal evaluation form.`}
+              value={formData.description}
               onChange={handleChange}
               placeholder="Enter Description"
               rows={5}
@@ -142,7 +156,6 @@ export default function ScheduleForm({ job, verifiedCandidateEmails }: ScheduleF
               className="form-control"
               id="start"
               name="start"
-              // value="test"
               onChange={handleChange}
             />
           </div>
@@ -155,7 +168,6 @@ export default function ScheduleForm({ job, verifiedCandidateEmails }: ScheduleF
               className="form-control"
               id="end"
               name="end"
-              // value="test"
               onChange={handleChange}
             />
           </div>
@@ -168,7 +180,7 @@ export default function ScheduleForm({ job, verifiedCandidateEmails }: ScheduleF
               className="form-control"
               id="email"
               name="email"
-              value={verifiedCandidateEmails.join(";")}
+              value={formData.email}
               onChange={handleChange}
               placeholder="Enter Email"
             />
