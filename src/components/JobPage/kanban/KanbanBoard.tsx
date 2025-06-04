@@ -1,16 +1,23 @@
 import ColumnContainer from "./ColumnContainer";
 import type { ApplicationType } from "../../../models/Application";
 import { getApplicantsByJobId } from "../../../services/applicationService";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useMemo } from "react";
 import toast from "react-hot-toast";
 import Modal from "../../Modal";
+import ScheduleForm from "../ScheduleForm";
+import type { JobType } from "../../../models/Job";
 
-const KanbanBoard = () => {
+type KanbanBoardProps = {
+  job: JobType
+};
+
+const KanbanBoard = ({ job }: KanbanBoardProps) => {
   const { id } = useParams();
   const columns = ["Applied", "Screened", "Verified", "Interview Scheduled"];
   const [candidates, setCandidates] = useState<ApplicationType[]>([]);
+  const [verifiedCandidateEmails, setVerifiedCandidateEmails] = useState<string[]>([]);
 
   useEffect(() => {
     if (id) {
@@ -23,13 +30,30 @@ const KanbanBoard = () => {
     }
   }, [id]);
 
-  function getCandidateEmailsByStatus(status: string): string[] {
-    const candidates = groupedCandidates[status.toLowerCase()] || [];
+  const groupedCandidates = useMemo(() => {
+    return candidates.reduce<Record<string, typeof candidates>>(
+      (acc, candidate) => {
+        const status = candidate.status.toLowerCase();
+        if (!acc[status]) acc[status] = [];
+        acc[status].push(candidate);
+        return acc;
+      },
+      {}
+    );
+  }, [candidates]);
 
+  const getCandidateEmailsByStatus = useCallback((status: string): string[] => {
+    const candidates = groupedCandidates[status.toLowerCase()] || [];
     return candidates
       .map((candidate) => candidate.applicant?.email)
       .filter((email): email is string => Boolean(email));
-  }
+  }, [groupedCandidates]);
+
+  useEffect(() => {
+    const verifiedEmails = getCandidateEmailsByStatus("verified");
+    setVerifiedCandidateEmails(verifiedEmails);
+  }, [groupedCandidates, getCandidateEmailsByStatus]);
+
 
   const columnConfigs: Record<
     string,
@@ -56,8 +80,6 @@ const KanbanBoard = () => {
     Verified: {
       buttonText: "Schedule Interview",
       onClick: () => {
-        const emails = getCandidateEmailsByStatus("verified");
-        console.log(emails);
       },
       icon: "bi-calendar-event",
       color: "success",
@@ -70,18 +92,6 @@ const KanbanBoard = () => {
       color: "warning",
     },
   };
-
-  const groupedCandidates = useMemo(() => {
-    return candidates.reduce<Record<string, typeof candidates>>(
-      (acc, candidate) => {
-        const status = candidate.status.toLowerCase();
-        if (!acc[status]) acc[status] = [];
-        acc[status].push(candidate);
-        return acc;
-      },
-      {}
-    );
-  }, [candidates]);
 
   return (
     <>
@@ -143,13 +153,13 @@ const KanbanBoard = () => {
       <Modal
         id="scheduleInterviewBtn"
         title="Schedule Group Interview"
-        btnText="Save"
+        btnText="Create Event"
         onConfirm={() => {
           alert("schedule");
         }}
       >
         {/* Modal content goes here */}
-        <p>Create event form</p>
+        <ScheduleForm job={job} verifiedCandidateEmails={verifiedCandidateEmails}></ScheduleForm>
       </Modal>
     </>
   );
