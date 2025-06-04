@@ -20,3 +20,15 @@ export const createApplication = async (applicationDetails: ApplicationType) => 
     throw error;
   }
 };
+
+import axios from "axios";
+
+export async function sendVerificationRequest(candidateId: string, jobId: string) {
+  console.log('Sending verification for:', candidateId, jobId);
+  const res = await axios.post(
+    "http://localhost:8080/verification/start",
+    { candidateId, jobId },
+    { withCredentials: true }
+  );
+  return res.data;
+}
