@@ -4,20 +4,32 @@ import {
   getApplicantsByJobId,
   sendVerificationRequest,
 } from "../../../services/applicationService";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { useMemo } from "react";
 import {
   getApplicantsByStatus,
   getJobApplicantsJSON,
 } from "../../../utils/applicationUtil";
 import toast from "react-hot-toast";
 import Modal from "../../Modal";
+import { Modal as BSModal } from "bootstrap";
 
 const KanbanBoard = () => {
   const { id } = useParams();
   const columns = ["Applied", "Screened", "Verified", "Interview Scheduled"];
   const [candidates, setCandidates] = useState<ApplicationType[]>([]);
+
+  const [verificationModal, setVerificationModal] = useState<{
+    show: boolean;
+    title: string;
+    message: string;
+    isSuccess: boolean;
+  }>({
+    show: false,
+    title: "",
+    message: "",
+    isSuccess: true,
+  });
 
   useEffect(() => {
     if (id) {
@@ -52,22 +64,64 @@ const KanbanBoard = () => {
       icon: "bi-funnel",
       color: "primary",
     },
-    Screened: {
+      Screened: {
       buttonText: "Verify",
       onClick: async () => {
         const applicants = getApplicantsByStatus(candidates, "screened");
+
+        if (applicants.length === 0) {
+          // Show modal with no verification message
+          setVerificationModal({
+            show: true,
+            title: "No Verification Sent",
+            message: "No candidates to verify.",
+            isSuccess: false,
+          });
+
+          const modalElement = document.getElementById("verificationResultModal");
+          if (modalElement) {
+            const modal = new BSModal(modalElement);
+            modal.show();
+          }
+          return; // exit early
+        }
+
         const json = getJobApplicantsJSON(applicants, id ?? "");
-        
+
         try {
           const verificationResult = await sendVerificationRequest(json);
-          toast.success(verificationResult);
+
+          setVerificationModal({
+            show: true,
+            title: "Verification Sent",
+            message: verificationResult.message ?? "Verification successful!",
+            isSuccess: true,
+          });
+
+          const modalElement = document.getElementById("verificationResultModal");
+          if (modalElement) {
+            const modal = new BSModal(modalElement);
+            modal.show();
+          }
         } catch (error) {
-          toast.error(error instanceof Error ? error.message : String(error));
+          setVerificationModal({
+            show: true,
+            title: "Verification Failed",
+            message: error instanceof Error ? error.message : String(error),
+            isSuccess: false,
+          });
+
+          const modalElement = document.getElementById("verificationResultModal");
+          if (modalElement) {
+            const modal = new BSModal(modalElement);
+            modal.show();
+          }
         }
       },
       icon: "bi-check-circle",
       color: "info",
     },
+
     Verified: {
       buttonText: "Schedule Interview",
       onClick: () => console.log("Verifying Candidate Info"),
@@ -81,17 +135,6 @@ const KanbanBoard = () => {
       color: "warning",
     },
   };
-
-  // if (candidates.length === 0) {
-  //   return (
-  //     <div className="d-flex justify-content-center align-items-center vh-100">
-  //       <div className="text-center">
-  //         <div className="spinner-border text-primary" role="status" />
-  //         <p className="mt-3 text-muted">Loading candidates ...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   return (
     <>
@@ -138,6 +181,7 @@ const KanbanBoard = () => {
           </div>
         </div>
       </div>
+
       <Modal
         id="filterConfigurationModal"
         title="Filter Configuration"
@@ -146,9 +190,32 @@ const KanbanBoard = () => {
           console.log("Test");
         }}
       >
-        {/* Modal content goes here */}
         <p className="mb-0">Test</p>
       </Modal>
+
+      <Modal
+        id="verificationResultModal"
+        title={verificationModal.title}
+        btnText="Close"
+        onConfirm={() =>
+          setVerificationModal((prev) => ({ ...prev, show: false }))
+        }
+      >
+        <p
+          className={`mb-0 ${
+            verificationModal.isSuccess ? "text-success" : "text-danger"
+          }`}
+        >
+          {verificationModal.message}
+        </p>
+
+        <style>{`
+          #verificationResultModal .modal-footer > .btn.btn-light {
+            display: none;
+          }
+        `}</style>
+      </Modal>
+
     </>
   );
 };
