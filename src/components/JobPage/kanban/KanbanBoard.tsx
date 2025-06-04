@@ -1,9 +1,16 @@
 import ColumnContainer from "./ColumnContainer";
 import type { ApplicationType } from "../../../models/Application";
-import { getApplicantsByJobId } from "../../../services/applicationService";
+import {
+  getApplicantsByJobId,
+  sendVerificationRequest,
+} from "../../../services/applicationService";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useMemo } from "react";
+import {
+  getApplicantsByStatus,
+  getJobApplicantsJSON,
+} from "../../../utils/applicationUtil";
 import toast from "react-hot-toast";
 import Modal from "../../Modal";
 
@@ -23,6 +30,18 @@ const KanbanBoard = () => {
     }
   }, [id]);
 
+  const groupedCandidates = useMemo(() => {
+    return candidates.reduce<Record<string, typeof candidates>>(
+      (acc, candidate) => {
+        const status = candidate.status.toLowerCase();
+        if (!acc[status]) acc[status] = [];
+        acc[status].push(candidate);
+        return acc;
+      },
+      {}
+    );
+  }, [candidates]);
+
   const columnConfigs: Record<
     string,
     { buttonText: string; onClick: () => void; icon: string; color: string }
@@ -35,7 +54,17 @@ const KanbanBoard = () => {
     },
     Screened: {
       buttonText: "Verify",
-      onClick: () => console.log("Viewing Screened Candidates"),
+      onClick: async () => {
+        const applicants = getApplicantsByStatus(candidates, "screened");
+        const json = getJobApplicantsJSON(applicants, id ?? "");
+        
+        try {
+          const verificationResult = await sendVerificationRequest(json);
+          toast.success(verificationResult);
+        } catch (error) {
+          toast.error(error instanceof Error ? error.message : String(error));
+        }
+      },
       icon: "bi-check-circle",
       color: "info",
     },
@@ -52,18 +81,6 @@ const KanbanBoard = () => {
       color: "warning",
     },
   };
-
-  const groupedCandidates = useMemo(() => {
-    return candidates.reduce<Record<string, typeof candidates>>(
-      (acc, candidate) => {
-        const status = candidate.status.toLowerCase();
-        if (!acc[status]) acc[status] = [];
-        acc[status].push(candidate);
-        return acc;
-      },
-      {}
-    );
-  }, [candidates]);
 
   // if (candidates.length === 0) {
   //   return (

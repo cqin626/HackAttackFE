@@ -11,7 +11,9 @@ export const getApplicantsByJobId = async (jobId: string) => {
   }
 };
 
-export const createApplication = async (applicationDetails: ApplicationType) => {
+export const createApplication = async (
+  applicationDetails: ApplicationType
+) => {
   try {
     const response = await api.post(`/applications/`, applicationDetails);
     return response.data;
@@ -21,14 +23,15 @@ export const createApplication = async (applicationDetails: ApplicationType) => 
   }
 };
 
-import axios from "axios";
-
-export async function sendVerificationRequest(candidateId: string, jobId: string) {
-  console.log('Sending verification for:', candidateId, jobId);
-  const res = await axios.post(
-    "http://localhost:8080/verification/start",
-    { candidateId, jobId },
-    { withCredentials: true }
-  );
-  return res.data;
+export async function sendVerificationRequest(payload: {
+  jobID: string;
+  applicants: string[];
+}) {
+  try {
+    const response = await api.post(`/verification/start`, payload);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to send applications:", error);
+    throw error;
+  }
 }
