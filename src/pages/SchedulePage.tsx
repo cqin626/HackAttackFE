@@ -1,36 +1,27 @@
 import { useCallback, useEffect, useState } from "react";
-import { createEvent, getEvents } from "../services/calenderService";
+import { getEvents } from "../services/calenderService";
 import Navbar from "../components/Navbar";
 import type { AttendeeType, EventType } from "../models/Event";
 import Spinner from "../components/Spinner";
 import toast from "react-hot-toast";
 import axios from "axios";
-
-interface FormData {
-  summary: string;
-  description: string;
-  start: string;
-  end: string;
-  email: string;
-}
+import { getHrEmail } from "../services/hrService";
 
 export default function CalendarTestPage() {
-  const [formData, setFormData] = useState<FormData>({
-    summary: "",
-    description: "",
-    start: "",
-    end: "",
-    email: ""
-  });
-
   const [events, setEvents] = useState<EventType[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isCreating, setIsCreating] = useState(false);
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [hrEmail, setHrEmail] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  useEffect(() => {
+    getHrEmail()
+      .then((data) => setHrEmail(data))
+      .catch((err) => {
+        const message = err?.message || "An unexpected error occurred";
+        setError(message);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
     if (error) {
@@ -64,98 +55,17 @@ export default function CalendarTestPage() {
   }, []);
 
   useEffect(() => {
-    fetchEvents(formData.email);
-  }, [formData.email, fetchEvents]);
-
-  const validateForm = (): boolean => {
-    const { summary, start, end, email } = formData;
-
-    if (!summary.trim()) {
-      toast.error("Summary is required");
-      return false;
+    if (hrEmail) {
+      fetchEvents(hrEmail);
     }
-
-    if (!start || !end) {
-      toast.error("Start and end times are required");
-      return false;
-    }
-
-    if (new Date(start) >= new Date(end)) {
-      toast.error("End time must be after start time");
-      return false;
-    }
-
-    if (!email.trim()) {
-      toast.error("Attendee email is required");
-      return false;
-    }
-    return true;
-  };
-
-  const handleCreate = async () => {
-  if (!validateForm()) return;
-
-  setIsCreating(true);
-  try {
-    const parsedEmails = formData.email
-      .split(";")
-      .map((e) => e.trim())
-      .filter((e) => e);
-
-    const payload = {
-      summary: formData.summary,
-      description: formData.description,
-      start: formData.start,
-      end: formData.end,
-      email: parsedEmails, // array of emails
-    };
-
-    await createEvent(payload);
-    toast.success("Event created!");
-
-    setFormData((prev) => ({
-      summary: "",
-      description: "",
-      start: "",
-      end: "",
-      email: prev.email, // optionally keep for reuse
-    }));
-
-    fetchEvents(parsedEmails[0]); // TODO: get current logged in user's email
-  } catch (err) {
-    setError("Failed to create event: " + err);
-  } finally {
-    setIsCreating(false);
-  }
-};
-
+  }, [hrEmail, fetchEvents]);
 
   return (
     <>
       <Navbar />
       <div className="p-4">
-        <h1 className="text-xl font-bold mb-4">Create Event</h1>
-        <div className="grid gap-2 mb-4">
-          <input name="summary" onChange={handleChange} placeholder="Summary" className="border p-2" />
-          <input name="description" onChange={handleChange} placeholder="Description" className="border p-2" />
-          <input name="start" type="datetime-local" onChange={handleChange} className="border p-2" />
-          <input name="end" type="datetime-local" onChange={handleChange} className="border p-2" />
-          <input name="email" onChange={handleChange} placeholder="Attendee Emails" className="border p-2" />
-          <button
-            onClick={handleCreate}
-            disabled={isCreating}
-            className="bg-blue-500 px-4 py-2 rounded"          >
-            {isCreating ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Creating...
-              </>
-            ) : (
-              "Create Event"
-            )}
-          </button>
-        </div>
-
+        <h1 className="text-xl font-bold mb-4">All Events</h1>
+        <p>{hrEmail}</p>
         {/* Events section */}
         {loading ? (
           <div className="container py-5">
