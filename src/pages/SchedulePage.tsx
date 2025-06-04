@@ -15,7 +15,13 @@ export default function CalendarTestPage() {
 
   useEffect(() => {
     getHrEmail()
-      .then((data) => setHrEmail(data))
+      .then((data) => {
+        if (data.success) {
+          setHrEmail(data.email);
+        } else {
+          setError(data.error);
+        }
+      })
       .catch((err) => {
         const message = err?.message || "An unexpected error occurred";
         setError(message);
