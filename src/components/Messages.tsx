@@ -1,23 +1,9 @@
 import React from "react";
-
-interface Attachment {
-  filename: string;
-  mimeType: string;
-  attachmentId: string;
-}
-
-interface Message {
-  from: string;
-  subject: string;
-  body: string;
-  receivedAt: string;
-  attachments: Attachment[];
-  messageId: string;
-}
+import type { Message } from "../types/messageType"; // adjust path as needed
 
 interface Props {
   messages: Message[];
-  onReply: (receiverEmail: string) => void;
+  onReply: (msg: Message) => void;
   onDelete: (id: string) => void;
 }
 
@@ -54,7 +40,7 @@ const Messages: React.FC<Props> = ({ messages, onReply, onDelete }) => {
 
           <div className="mt-3 d-flex gap-2">
             <button
-              onClick={() => onReply(msg.from)}
+              onClick={() => onReply(msg)}
               className="btn btn-primary"
             >
               Reply

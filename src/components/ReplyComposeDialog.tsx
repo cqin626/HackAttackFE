@@ -2,21 +2,28 @@ import React, { useState } from "react";
 
 interface ComposeDialogProps {
   receiverEmail: string;
+  subject: string;
+  threadId: string;
+  messageId: string;
   onClose: () => void;
   onSend: (data: {
     to: string;
     subject: string;
     body: string;
     attachments: File[];
+    threadId: string;
+    messageId: string;
   }) => void;
 }
 
 const ComposeDialog: React.FC<ComposeDialogProps> = ({
   receiverEmail,
+  subject: initialSubject,
+  threadId,
+  messageId,
   onClose,
   onSend,
 }) => {
-  const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
 
@@ -27,7 +34,14 @@ const ComposeDialog: React.FC<ComposeDialogProps> = ({
   };
 
   const handleSubmit = () => {
-    onSend({ to: receiverEmail, subject, body, attachments });
+    onSend({ 
+      to: receiverEmail,
+      subject: initialSubject,
+      body,
+      attachments,
+      threadId,
+      messageId,
+    });
     onClose();
   };
 
@@ -48,7 +62,6 @@ const ComposeDialog: React.FC<ComposeDialogProps> = ({
               className="close"
               aria-label="Close"
               onClick={() => {
-                setSubject("");
                 setBody("");
                 setAttachments([]);
                 onClose();
@@ -61,10 +74,9 @@ const ComposeDialog: React.FC<ComposeDialogProps> = ({
           <div className="modal-body">
             <input
               type="text"
-              placeholder="Subject"
               className="form-control mb-3"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
+              value={initialSubject}
+              readOnly
             />
             <textarea
               placeholder="Message"
@@ -86,7 +98,6 @@ const ComposeDialog: React.FC<ComposeDialogProps> = ({
               type="button"
               className="btn btn-secondary"
               onClick={() => {
-                setSubject("");
                 setBody("");
                 setAttachments([]);
                 onClose();

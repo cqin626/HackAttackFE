@@ -25,3 +25,67 @@ export const deleteMessage = async (id: string): Promise<void> => {
     throw new Error("Failed to delete message");
   }
 };
+
+
+// Send a brand new email
+export const sendEmailViaGmail = async (email: {
+  to: string;
+  subject: string;
+  body: string;
+  attachments: File[];
+}): Promise<void> => {
+  const formData = new FormData();
+  formData.append("receiverEmail", email.to);
+  formData.append("subject", email.subject);
+  formData.append("content", email.body);
+  email.attachments.forEach(file => {
+    formData.append("attachments", file);
+  });
+
+  const response = await axios.post("/messages/send", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+    withCredentials: true,
+  });
+
+  if (response.status !== 200) {
+    throw new Error("Failed to send email");
+  }
+};
+
+export const replyToEmailViaGmail = async (reply: {
+  to: string;
+  subject: string;
+  bodyText: string;
+  threadId: string;
+  originalMessageId: string;
+  replyToMessageId: string;
+  attachments?: File[];
+}): Promise<void> => {
+  try {
+    const formData = new FormData();
+    formData.append("to", reply.to);
+    formData.append("subject", reply.subject);
+    formData.append("bodyText", reply.bodyText);
+    formData.append("threadId", reply.threadId);
+    formData.append("originalMessageId", reply.originalMessageId);
+    formData.append("replyToMessageId", reply.replyToMessageId);
+
+    reply.attachments?.forEach(file => {
+      formData.append("attachments", file);
+    });
+
+    const response = await axios.post("/messages/reply-to", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      withCredentials: true,
+    });
+
+    if (response.status !== 200) {
+      throw new Error("Failed to send reply");
+    }
+  } catch (error) {
+    console.error("Error in replyToEmailViaGmail:", error);
+    throw error;
+  }
+};
