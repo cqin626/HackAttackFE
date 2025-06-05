@@ -224,10 +224,7 @@ const KanbanBoard = ({ job }: KanbanBoardProps) => {
       <Modal
         id="scheduleInterviewBtn"
         title="Schedule Group Interview"
-        btnText="Create Event"
-        onConfirm={() => {
-          alert("schedule");
-        }}
+        showFooter={false}
       >
         {/* Modal content goes here */}
         <ScheduleForm job={job} verifiedCandidateEmails={verifiedCandidateEmails}></ScheduleForm>

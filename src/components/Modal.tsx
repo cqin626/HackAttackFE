@@ -4,6 +4,7 @@ interface ModalProps {
   children: React.ReactNode;
   onConfirm?: () => void;
   btnText?: string;
+  showFooter?: boolean;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -12,6 +13,7 @@ const Modal: React.FC<ModalProps> = ({
   children,
   btnText = "Save",
   onConfirm,
+  showFooter = true,
 }) => {
   return (
     <div
@@ -23,6 +25,8 @@ const Modal: React.FC<ModalProps> = ({
     >
       <div className="modal-dialog modal-dialog-centered modal-lg">
         <div className="modal-content">
+
+          {/* header */}
           <div className="modal-header">
             <h5 className="modal-title" id={`${id}Label`}>
               {title}
@@ -34,31 +38,37 @@ const Modal: React.FC<ModalProps> = ({
               aria-label="Close"
             ></button>
           </div>
+
+          {/* content */}
           <div className="modal-body p-4">{children}</div>
-          <div className="modal-footer">
-            <button
-              type="button"
-              className="btn btn-light"
-              data-bs-dismiss="modal"
-            >
-              Cancel
-            </button>
-            {onConfirm && (
+
+          {/* footer */}
+          {showFooter && (
+            <div className="modal-footer">
               <button
                 type="button"
+                className="btn btn-light"
                 data-bs-dismiss="modal"
-                aria-label="Close"
-                className={`btn ${
-                  btnText.toLowerCase().includes("delete")
-                    ? "btn-danger"
-                    : "btn-primary"
-                }`}
-                onClick={onConfirm}
               >
-                {btnText}
+                Cancel
               </button>
-            )}
-          </div>
+              {onConfirm && (
+                <button
+                  type="button"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                  className={`btn ${
+                    btnText.toLowerCase().includes("delete")
+                      ? "btn-danger"
+                      : "btn-primary"
+                  }`}
+                  onClick={onConfirm}
+                >
+                  {btnText}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
