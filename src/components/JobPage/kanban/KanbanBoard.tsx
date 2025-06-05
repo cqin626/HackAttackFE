@@ -1,9 +1,16 @@
 import ColumnContainer from "./ColumnContainer";
 import type { ApplicationType } from "../../../models/Application";
-import { getApplicantsByJobId } from "../../../services/applicationService";
+import {
+  getApplicantsByJobId,
+  sendVerificationRequest,
+} from "../../../services/applicationService";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useMemo } from "react";
+import {
+  getApplicantsByStatus,
+  getJobApplicantsJSON,
+} from "../../../utils/applicationUtil";
 import toast from "react-hot-toast";
 import Modal from "../../Modal";
 import ScheduleForm from "../ScheduleForm";
@@ -73,7 +80,17 @@ const KanbanBoard = ({ job }: KanbanBoardProps) => {
     },
     Screened: {
       buttonText: "Verify",
-      onClick: () => console.log("Viewing Screened Candidates"),
+      onClick: async () => {
+        const applicants = getApplicantsByStatus(candidates, "screened");
+        const json = getJobApplicantsJSON(applicants, id ?? "");
+        
+        try {
+          const verificationResult = await sendVerificationRequest(json);
+          toast.success(verificationResult);
+        } catch (error) {
+          toast.error(error instanceof Error ? error.message : String(error));
+        }
+      },
       icon: "bi-check-circle",
       color: "info",
     },

@@ -6,6 +6,7 @@ import AboutPage from "../pages/AboutPage";
 import SchedulePage from "../pages/SchedulePage";
 import MessagePage from "../pages/MessagePage";
 import LoginPage from "../pages/LoginPage";
+import VerifyCaptchaPage from "../pages/VerifyCaptcha";
 
 const router = createBrowserRouter([
   {
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
   {
     path: "*",
     element: <NotFoundPage />,
+  },
+  {
+    path: "/verify-captcha",
+    element: <VerifyCaptchaPage />,
   },
 ]);
 
