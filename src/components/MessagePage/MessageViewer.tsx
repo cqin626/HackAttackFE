@@ -52,7 +52,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
     const latestMessage = threadMessages[threadMessages.length - 1];
 
-    // Handle sending reply
     const handleSendReply = () => {
       if (!replyBody.trim()) {
         alert("Reply body cannot be empty");
@@ -70,26 +69,40 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       setReplyAttachments([]);
     };
 
+    const handleDeleteThread = () => {
+      if (confirm("Are you sure you want to delete this entire thread?")) {
+        onDelete(selectedThreadId);
+        onBackToThreads();
+      }
+    };
+
     return (
       <div className="d-flex flex-column h-100">
         <div className="d-flex justify-content-between align-items-center mb-3 flex-shrink-0">
-          <h5>{threadMessages[0]?.subject || "(No Subject)"}</h5>
-          <button
-            className="btn btn-sm btn-outline-secondary"
-            onClick={onBackToThreads}
-          >
-            Back
-          </button>
+          <h5 className="mb-0">{threadMessages[0]?.subject || "(No Subject)"}</h5>
+          <div>
+            <button
+              className="btn btn-sm btn-outline-danger me-2"
+              onClick={handleDeleteThread}
+            >
+              Delete Thread
+            </button>
+            <button
+              className="btn btn-sm btn-outline-secondary"
+              onClick={onBackToThreads}
+            >
+              Back
+            </button>
+          </div>
         </div>
 
         <div
           className="flex-grow-1 overflow-auto mb-3"
           style={{ maxHeight: "calc(100% - 150px)" }}
         >
-          <Messages messages={threadMessages} onDelete={onDelete} />
+          <Messages messages={threadMessages} />
         </div>
 
-        {/* Refactored reply section */}
         <div
           className="border-top pt-3 flex-shrink-0 d-flex flex-column"
           style={{ maxHeight: "150px", boxSizing: "border-box", padding: "0 1rem" }}
@@ -120,7 +133,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     );
   }
 
-  // Sort threads by latest message date descending (newest first)
+  // Sort threads by latest message date descending
   const sortedThreads = Object.entries(groupedByThread).sort(([, msgsA], [, msgsB]) => {
     const latestA = msgsA.reduce((prev, curr) =>
       new Date(curr.receivedAt) > new Date(prev.receivedAt) ? curr : prev

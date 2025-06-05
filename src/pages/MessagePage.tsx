@@ -93,14 +93,14 @@ const MessagePage = () => {
     }
   };
 
-  const handleDeleteMessage = async (id: string) => {
+  const handleDeleteMessage = async (threadId: string) => {
     try {
-      await deleteMessage(id);
-      setMessages((prev) => prev.filter((msg) => msg.messageId !== id));
-      alert("Message deleted successfully.");
+      await deleteMessage(threadId, true); // Pass threadId and flag
+      setMessages((prev) => prev.filter((msg) => msg.threadId !== threadId));
+      alert("Conversation deleted successfully.");
     } catch (err) {
-      console.error("Error deleting message:", err);
-      alert("Failed to delete message.");
+      console.error("Error deleting message thread:", err);
+      alert("Failed to delete conversation.");
     }
   };
 

@@ -3,10 +3,9 @@ import type { Message } from "../../types/messageType";
 
 interface Props {
   messages: Message[];
-  onDelete: (id: string) => void;
 }
 
-const Messages: React.FC<Props> = ({ messages, onDelete }) => {
+const Messages: React.FC<Props> = ({ messages }) => {
   return (
     <div>
       {messages.map((msg, index) => (
@@ -45,12 +44,6 @@ const Messages: React.FC<Props> = ({ messages, onDelete }) => {
               </ul>
             </div>
           )}
-          <button
-            onClick={() => onDelete(msg.messageId)}
-            className="btn btn-danger btn-sm mt-2"
-          >
-            Delete
-          </button>
         </div>
       ))}
     </div>

@@ -15,16 +15,26 @@ export const fetchMessages = async (): Promise<Message[]> => {
 };
 
 
-export const deleteMessage = async (id: string): Promise<void> => {
+/**
+ * Deletes a message or all messages in a thread.
+ * @param id - The threadId or messageId depending on the context.
+ * @param byThreadId - If true, deletes all messages in the thread.
+ */
+export const deleteMessage = async (
+  id: string,
+  byThreadId: boolean = false
+): Promise<void> => {
+  console.log('Deleting message:', id, 'byThreadId:', byThreadId);
   const response = await axios.delete(`/messages/delete/${id}`, {
-    params: { byMessageId: true }, // if you're using Gmail messageId; change to false if MongoDB _id
+    params: { byThreadId },
     withCredentials: true,
   });
 
   if (response.status !== 200) {
-    throw new Error("Failed to delete message");
+    throw new Error("Failed to delete message(s)");
   }
 };
+
 
 
 // Send a brand new email
