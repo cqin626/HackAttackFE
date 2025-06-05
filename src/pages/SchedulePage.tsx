@@ -77,6 +77,11 @@ export default function CalendarTestPage() {
     return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
   };
 
+  const getPreviousMonthDays = (date: Date) => {
+    const prevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 0);
+    return prevMonth.getDate();
+  };
+
   const getEventsForDate = (date: Date) => {
     return events.filter(event => {
       const eventDate = new Date(event.start);
@@ -107,22 +112,72 @@ export default function CalendarTestPage() {
   const renderCalendarView = () => {
     const daysInMonth = getDaysInMonth(currentDate);
     const firstDay = getFirstDayOfMonth(currentDate);
+    const prevMonthDays = getPreviousMonthDays(currentDate);
     const days = [];
     const today = new Date();
 
-    // Empty cells for days before the first day of the month
-    for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="calendar-day empty"></div>);
+    // Previous month's trailing days
+    for (let i = firstDay - 1; i >= 0; i--) {
+      const day = prevMonthDays - i;
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, day);
+      const dayEvents = getEventsForDate(date);
+
+      days.push(
+        <div key={`prev-${day}`} className="calendar-day other-month">
+          <div className="day-number">{day}</div>
+          <div className="day-events">
+            {dayEvents.slice(0, 3).map((event, index) => (
+              <div key={index} className="event-item">
+                <div className="event-time">{formatTime(event.start)}</div>
+                <div className="event-title" title={event.summary}>
+                  {event.summary}
+                </div>
+              </div>
+            ))}
+            {dayEvents.length > 3 && (
+              <div className="more-events">+{dayEvents.length - 3} more</div>
+            )}
+          </div>
+        </div>
+      );
     }
 
-    // Days of the month
+    // Current month days
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
       const dayEvents = getEventsForDate(date);
       const isToday = date.toDateString() === today.toDateString();
 
       days.push(
-        <div key={day} className={`calendar-day ${isToday ? 'today' : ''}`}>
+        <div key={day} className={`calendar-day current-month ${isToday ? 'today' : ''}`}>
+          <div className="day-number">{day}</div>
+          <div className="day-events">
+            {dayEvents.slice(0, 3).map((event, index) => (
+              <div key={index} className="event-item">
+                <div className="event-time">{formatTime(event.start)}</div>
+                <div className="event-title" title={event.summary}>
+                  {event.summary}
+                </div>
+              </div>
+            ))}
+            {dayEvents.length > 3 && (
+              <div className="more-events">+{dayEvents.length - 3} more</div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Next month's leading days to complete the grid (42 cells = 6 weeks)
+    const totalCells = 42;
+    const remainingCells = totalCells - days.length;
+    
+    for (let day = 1; day <= remainingCells; day++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, day);
+      const dayEvents = getEventsForDate(date);
+
+      days.push(
+        <div key={`next-${day}`} className="calendar-day other-month">
           <div className="day-number">{day}</div>
           <div className="day-events">
             {dayEvents.slice(0, 3).map((event, index) => (
@@ -310,12 +365,20 @@ export default function CalendarTestPage() {
       
       {/* Custom CSS */}
       <style>{`
+        .calendar-grid {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 1px;
+        }
+        
         .calendar-grid .calendar-day {
           min-height: 120px;
           border: 1px solid #e9ecef;
           padding: 8px;
           background: white;
           transition: background-color 0.2s;
+          display: flex;
+          flex-direction: column;
         }
         
         .calendar-day:hover {
@@ -323,23 +386,39 @@ export default function CalendarTestPage() {
         }
         
         .calendar-day.today {
-          background-color: #e3f2fd;
-          border-color: #2196f3;
+          background-color: #fff3cd;
+          border-color: #ffc107;
+          box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.25);
         }
         
-        .calendar-day.empty {
+        .calendar-day.other-month {
           background-color: #f8f9fa;
-          border-color: #f8f9fa;
+          color: #6c757d;
+        }
+        
+        .calendar-day.other-month .day-number {
+          color: #adb5bd;
+        }
+        
+        .calendar-day.current-month {
+          background-color: white;
         }
         
         .day-number {
           font-weight: bold;
           margin-bottom: 4px;
           color: #495057;
+          font-size: 0.9rem;
         }
         
         .today .day-number {
-          color: #2196f3;
+          color: #856404;
+          font-weight: 900;
+        }
+        
+        .day-events {
+          flex: 1;
+          overflow: hidden;
         }
         
         .event-item {
@@ -349,6 +428,10 @@ export default function CalendarTestPage() {
           margin-bottom: 2px;
           border-radius: 2px;
           font-size: 0.75rem;
+        }
+        
+        .other-month .event-item {
+          opacity: 0.6;
         }
         
         .event-time {
@@ -376,6 +459,11 @@ export default function CalendarTestPage() {
           flex-wrap: wrap;
         }
         
+        .calendar-header .col {
+          background-color: #f8f9fa;
+          border: 1px solid #dee2e6;
+        }
+        
         @media (max-width: 768px) {
           .calendar-day {
             min-height: 80px;
@@ -384,6 +472,10 @@ export default function CalendarTestPage() {
           
           .event-item {
             font-size: 0.7rem;
+          }
+          
+          .day-number {
+            font-size: 0.8rem;
           }
         }
       `}</style>
