@@ -1,16 +1,25 @@
+// MessagePage.tsx
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
-import Messages from "../components/Messages";
-import ComposeDialog from "../components/ComposeDialog";
-import { fetchMessages, syncMessages, deleteMessage } from "../services/messageService";
+import NewComposeDialog from "../components/MessagePage/NewComposeDialog";
+import MessageViewer from "../components/MessagePage/MessageViewer"; // Import this
 import type { Message } from "../types/messageType";
-import api from "../api/apiConfig";
+
+import {
+  fetchMessages,
+  syncMessages,
+  deleteMessage,
+  sendEmailViaGmail,
+  replyToEmailViaGmail,
+} from "../services/messageService";
 
 const MessagePage = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
-  const [replyEmail, setReplyEmail] = useState<string | null>(null);
+
+  const [showNewCompose, setShowNewCompose] = useState(false);
   const [selectedSender, setSelectedSender] = useState<string | null>(null);
+  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
 
   useEffect(() => {
     const syncAndFetch = async () => {
@@ -18,6 +27,9 @@ const MessagePage = () => {
         await syncMessages();
         const data = await fetchMessages();
         setMessages(data);
+
+        const uniqueSenders = [...new Set(data.map((msg) => msg.from))];
+        setSelectedSender(uniqueSenders[0] || null);
       } catch (err) {
         console.error("Error syncing or fetching messages:", err);
       } finally {
@@ -28,7 +40,7 @@ const MessagePage = () => {
     syncAndFetch();
   }, []);
 
-  const groupedMessages = messages.reduce((acc, msg) => {
+  const groupedBySender = messages.reduce((acc, msg) => {
     if (!acc[msg.from]) acc[msg.from] = [];
     acc[msg.from].push(msg);
     return acc;
@@ -41,41 +53,72 @@ const MessagePage = () => {
     attachments: File[];
   }) => {
     try {
-      const formData = new FormData();
-      formData.append("receiverEmail", email.to);
-      formData.append("subject", email.subject);
-      formData.append("content", email.body);
-      email.attachments.forEach((file) => {
-        formData.append("attachments", file);
-      });
-
-      await api.post("/messages/send", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
+      await sendEmailViaGmail(email);
       alert("Email sent!");
+      setShowNewCompose(false);
+      const data = await fetchMessages();
+      setMessages(data);
     } catch (err) {
       console.error("Error sending email:", err);
       alert("Failed to send email.");
     }
   };
 
-  const handleDeleteMessage = async (id: string) => {
+  const handleReplyEmail = async (email: {
+    to: string;
+    subject: string;
+    body: string;
+    attachments: File[];
+    threadId: string;
+    messageId: string;
+  }) => {
     try {
-      await deleteMessage(id);
-      setMessages(prev => prev.filter(msg => msg.messageId !== id));
-      alert("Message deleted successfully.");
+      const payload = {
+        to: email.to,
+        subject: email.subject,
+        bodyText: email.body,
+        threadId: email.threadId,
+        originalMessageId: email.messageId,
+        replyToMessageId: email.messageId,
+        attachments: email.attachments,
+      };
+
+      await replyToEmailViaGmail(payload);
+      alert("Reply sent!");
+      const data = await fetchMessages();
+      setMessages(data);
     } catch (err) {
-      console.error("Error deleting message:", err);
-      alert("Failed to delete message.");
+      console.error("Error sending reply:", err);
+      alert("Failed to send reply.");
     }
   };
+
+  const handleDeleteMessage = async (threadId: string) => {
+    try {
+      await deleteMessage(threadId, true); // Pass threadId and flag
+      setMessages((prev) => prev.filter((msg) => msg.threadId !== threadId));
+      alert("Conversation deleted successfully.");
+    } catch (err) {
+      console.error("Error deleting message thread:", err);
+      alert("Failed to delete conversation.");
+    }
+  };
+
+  const selectedMessages = selectedSender
+    ? groupedBySender[selectedSender] || []
+    : [];
 
   return (
     <>
       <Navbar />
       <div className="container-fluid py-4">
-        <h1 className="h4 mb-4">Inbox</h1>
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h1 className="h4">Inbox</h1>
+          <button className="btn btn-success" onClick={() => setShowNewCompose(true)}>
+            Compose
+          </button>
+        </div>
+
         {loading ? (
           <div className="d-flex justify-content-center my-5">
             <div className="spinner-border" role="status">
@@ -86,40 +129,47 @@ const MessagePage = () => {
           <div className="d-flex border rounded shadow-sm" style={{ height: "75vh" }}>
             {/* Left Panel: Sender List */}
             <div className="border-end p-3" style={{ width: "30%", overflowY: "auto" }}>
-              {Object.keys(groupedMessages).sort().map(sender => (
-                <div
-                  key={sender}
-                  onClick={() => setSelectedSender(sender)}
-                  className={`p-2 rounded mb-2 ${selectedSender === sender ? "bg-primary text-white" : "bg-light"}`}
-                  style={{ cursor: "pointer" }}
-                >
-                  {sender}
-                </div>
-              ))}
+              {Object.keys(groupedBySender)
+                .sort()
+                .map((sender) => (
+                  <div
+                    key={sender}
+                    className={`p-2 rounded mb-2 ${
+                      selectedSender === sender ? "bg-primary text-white" : "bg-light"
+                    }`}
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      setSelectedSender(sender);
+                      setSelectedThreadId(null);
+                    }}
+                  >
+                    {sender}
+                  </div>
+                ))}
             </div>
 
-            {/* Right Panel: Messages */}
-            <div className="p-3 flex-grow-1 overflow-auto">
-              {selectedSender ? (
-                <Messages
-                  messages={groupedMessages[selectedSender].sort(
-                    (a, b) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime()
-                  )}
-                  onReply={setReplyEmail}
-                  onDelete={handleDeleteMessage}
-                />
-              ) : (
-                <p className="text-muted">Select a sender to view their messages.</p>
-              )}
+            {/* Right Panel: Delegate to MessageViewer */}
+            <div
+              className="p-3 flex-grow-1"
+              style={{ height: "75vh", display: "flex", flexDirection: "column" }}
+            >
+              <MessageViewer
+                messages={messages}
+                selectedSender={selectedSender}
+                selectedThreadId={selectedThreadId}
+                onThreadSelect={setSelectedThreadId}
+                onBackToThreads={() => setSelectedThreadId(null)}
+                onReply={handleReplyEmail}
+                onDelete={handleDeleteMessage}
+              />
             </div>
           </div>
         )}
       </div>
 
-      {replyEmail && (
-        <ComposeDialog
-          receiverEmail={replyEmail}
-          onClose={() => setReplyEmail(null)}
+      {showNewCompose && (
+        <NewComposeDialog
+          onClose={() => setShowNewCompose(false)}
           onSend={handleSendEmail}
         />
       )}

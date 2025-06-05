@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 
-interface ComposeDialogProps {
-  receiverEmail: string;
+interface NewComposeDialogProps {
   onClose: () => void;
   onSend: (data: {
     to: string;
@@ -11,11 +10,11 @@ interface ComposeDialogProps {
   }) => void;
 }
 
-const ComposeDialog: React.FC<ComposeDialogProps> = ({
-  receiverEmail,
+const NewComposeDialog: React.FC<NewComposeDialogProps> = ({
   onClose,
   onSend,
 }) => {
+  const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -27,7 +26,11 @@ const ComposeDialog: React.FC<ComposeDialogProps> = ({
   };
 
   const handleSubmit = () => {
-    onSend({ to: receiverEmail, subject, body, attachments });
+    if (!to.trim()) {
+      alert("Please enter a recipient email.");
+      return;
+    }
+    onSend({ to, subject, body, attachments });
     onClose();
   };
 
@@ -42,12 +45,13 @@ const ComposeDialog: React.FC<ComposeDialogProps> = ({
       <div className="modal-dialog modal-dialog-centered" role="document">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Reply to {receiverEmail}</h5>
+            <h5 className="modal-title">Compose New Message</h5>
             <button
               type="button"
               className="close"
               aria-label="Close"
               onClick={() => {
+                setTo("");
                 setSubject("");
                 setBody("");
                 setAttachments([]);
@@ -59,6 +63,13 @@ const ComposeDialog: React.FC<ComposeDialogProps> = ({
           </div>
 
           <div className="modal-body">
+            <input
+              type="email"
+              placeholder="Recipient Email"
+              className="form-control mb-3"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+            />
             <input
               type="text"
               placeholder="Subject"
@@ -86,6 +97,7 @@ const ComposeDialog: React.FC<ComposeDialogProps> = ({
               type="button"
               className="btn btn-secondary"
               onClick={() => {
+                setTo("");
                 setSubject("");
                 setBody("");
                 setAttachments([]);
@@ -108,4 +120,4 @@ const ComposeDialog: React.FC<ComposeDialogProps> = ({
   );
 };
 
-export default ComposeDialog;
+export default NewComposeDialog;
