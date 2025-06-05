@@ -6,7 +6,7 @@ export interface CalendarEvent {
   description: string;
   start: string;  // ISO format
   end: string;    // ISO format
-  email: string;  // Attendee email
+  email: string[];  // Attendee emails
 }
 
 export const createEvent = async (event: CalendarEvent): Promise<void> => {

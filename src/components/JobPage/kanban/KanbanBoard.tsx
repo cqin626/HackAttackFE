@@ -4,7 +4,7 @@ import {
   getApplicantsByJobId,
   sendVerificationRequest,
 } from "../../../services/applicationService";
-import { useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import {
   getApplicantsByStatus,
@@ -12,9 +12,15 @@ import {
 } from "../../../utils/applicationUtil";
 import toast from "react-hot-toast";
 import Modal from "../../Modal";
+import ScheduleForm from "../ScheduleForm";
+import type { JobType } from "../../../models/Job";
+
+type KanbanBoardProps = {
+  job: JobType
+};
 import { Modal as BSModal } from "bootstrap";
 
-const KanbanBoard = () => {
+const KanbanBoard = ({ job }: KanbanBoardProps) => {
   const { id } = useParams();
   const columns = ["Applied", "Screened", "Verified", "Interview Scheduled"];
   const [candidates, setCandidates] = useState<ApplicationType[]>([]);
@@ -30,6 +36,7 @@ const KanbanBoard = () => {
     message: "",
     isSuccess: true,
   });
+  const [verifiedCandidateEmails, setVerifiedCandidateEmails] = useState<string[]>([]);
 
   useEffect(() => {
     if (id) {
@@ -54,9 +61,28 @@ const KanbanBoard = () => {
     );
   }, [candidates]);
 
+  const getCandidateEmailsByStatus = useCallback((status: string): string[] => {
+    const candidates = groupedCandidates[status.toLowerCase()] || [];
+    return candidates
+      .map((candidate) => candidate.applicant?.email)
+      .filter((email): email is string => Boolean(email));
+  }, [groupedCandidates]);
+
+  useEffect(() => {
+    const verifiedEmails = getCandidateEmailsByStatus("verified");
+    setVerifiedCandidateEmails(verifiedEmails);
+  }, [groupedCandidates, getCandidateEmailsByStatus]);
+
+
   const columnConfigs: Record<
     string,
-    { buttonText: string; onClick: () => void; icon: string; color: string }
+    {
+      buttonText: string;
+      onClick: () => void;
+      icon: string;
+      color: string;
+      modalTarget?: string;
+    }
   > = {
     Applied: {
       buttonText: "Filter",
@@ -124,9 +150,11 @@ const KanbanBoard = () => {
 
     Verified: {
       buttonText: "Schedule Interview",
-      onClick: () => console.log("Verifying Candidate Info"),
+      onClick: () => {
+      },
       icon: "bi-calendar-event",
       color: "success",
+      modalTarget: "#scheduleInterviewBtn"
     },
     "Interview Scheduled": {
       buttonText: "Mark Interviewed",
@@ -162,7 +190,7 @@ const KanbanBoard = () => {
               const config = columnConfigs[col];
               if (!config) return null;
 
-              const { buttonText, onClick, icon, color } = config;
+              const { buttonText, onClick, icon, color, modalTarget } = config;
               const applications = groupedCandidates[col.toLowerCase()] || [];
 
               return (
@@ -174,6 +202,7 @@ const KanbanBoard = () => {
                     applications={applications}
                     icon={icon}
                     color={color}
+                    modalTarget={modalTarget}
                   />
                 </div>
               );
@@ -191,6 +220,17 @@ const KanbanBoard = () => {
         }}
       >
         <p className="mb-0">Test</p>
+      </Modal>
+      <Modal
+        id="scheduleInterviewBtn"
+        title="Schedule Group Interview"
+        btnText="Create Event"
+        onConfirm={() => {
+          alert("schedule");
+        }}
+      >
+        {/* Modal content goes here */}
+        <ScheduleForm job={job} verifiedCandidateEmails={verifiedCandidateEmails}></ScheduleForm>
       </Modal>
 
       <Modal

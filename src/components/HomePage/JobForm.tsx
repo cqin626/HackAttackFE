@@ -62,6 +62,7 @@ const JobForm: React.FC<JobFormProps> = ({ setNewJobData, setShouldReloadJobs, j
   useEffect(() => {
     if (error) {
       toast.error(error);
+      setError("");
     }
   }, [error]);
 

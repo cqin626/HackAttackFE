@@ -29,6 +29,7 @@ const JobPage = () => {
   useEffect(() => {
     if (error) {
       toast.error(error);
+      setError("");
     }
   }, [error]);
 
@@ -141,7 +142,7 @@ const JobPage = () => {
         </div>
 
         <div className="mt-4">
-          <KanbanBoard />
+          <KanbanBoard job={job}/>
         </div>
       </div>
     </div>
