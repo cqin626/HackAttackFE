@@ -11,5 +11,5 @@ export interface Message {
   receivedAt: string;
   attachments: Attachment[];
   messageId: string;
-  threadId:String;
+  threadId:string;
 }
