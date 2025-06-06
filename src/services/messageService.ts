@@ -9,6 +9,13 @@ export const syncMessages = async (): Promise<void> => {
   }
 };
 
+export const syncSentMessages = async (): Promise<void> => {
+  const response = await axios.get("/messages/sync-sent-messages", { withCredentials: true });
+  if (response.status !== 200) {
+    throw new Error("Sync sent messages failed");
+  }
+};
+
 export const fetchMessages = async (): Promise<Message[]> => {
   const response = await axios.get('/messages/db-messages'); // no email param
   return response.data;
@@ -36,18 +43,19 @@ export const deleteMessage = async (
 };
 
 
-
-// Send a brand new email
 export const sendEmailViaGmail = async (email: {
-  to: string;
+  to: string[]; // changed from string to string[]
   subject: string;
   body: string;
   attachments: File[];
 }): Promise<void> => {
   const formData = new FormData();
-  formData.append("receiverEmail", email.to);
+
+  // Pass recipients as JSON string
+  formData.append("receiverEmail", JSON.stringify(email.to));
   formData.append("subject", email.subject);
   formData.append("content", email.body);
+
   email.attachments.forEach(file => {
     formData.append("attachments", file);
   });
@@ -61,6 +69,7 @@ export const sendEmailViaGmail = async (email: {
     throw new Error("Failed to send email");
   }
 };
+
 
 export const replyToEmailViaGmail = async (reply: {
   to: string;

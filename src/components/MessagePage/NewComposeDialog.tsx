@@ -44,32 +44,35 @@ const NewComposeDialog: React.FC<NewComposeDialogProps> = ({
     >
       <div className="modal-dialog modal-dialog-centered" role="document">
         <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">Compose New Message</h5>
-            <button
-              type="button"
-              className="close"
-              aria-label="Close"
-              onClick={() => {
-                setTo("");
-                setSubject("");
-                setBody("");
-                setAttachments([]);
-                onClose();
-              }}
-            >
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
+          <div className="modal-header d-flex justify-content-between align-items-center">
+              <h5 className="modal-title">Compose New Email</h5>
+              <button
+                type="button"
+                className="close"
+                aria-label="Close"
+                onClick={() => {
+                  setTo("");
+                  setSubject("");
+                  setBody("");
+                  setAttachments([]);
+                  onClose();
+                }}
+                style={{ color: "red", fontWeight: "bold", fontSize: "1.5rem" }}
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
 
           <div className="modal-body">
             <input
               type="email"
-              placeholder="Recipient Email"
+              placeholder="Recipient Email(s), comma separated"
               className="form-control mb-3"
               value={to}
               onChange={(e) => setTo(e.target.value)}
+              multiple={false} // Keep this false because this is a text input for emails, not a file input
             />
+
             <input
               type="text"
               placeholder="Subject"

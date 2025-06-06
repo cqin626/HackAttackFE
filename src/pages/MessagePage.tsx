@@ -2,12 +2,13 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import NewComposeDialog from "../components/MessagePage/NewComposeDialog";
-import MessageViewer from "../components/MessagePage/MessageViewer"; // Import this
+import MessageViewer from "../components/MessagePage/MessageViewer";
 import type { Message } from "../types/messageType";
 
 import {
   fetchMessages,
   syncMessages,
+  syncSentMessages,  // Import syncSentMessages
   deleteMessage,
   sendEmailViaGmail,
   replyToEmailViaGmail,
@@ -24,7 +25,9 @@ const MessagePage = () => {
   useEffect(() => {
     const syncAndFetch = async () => {
       try {
-        await syncMessages();
+        // Sync inbox and sent messages concurrently
+        await Promise.all([syncMessages(), syncSentMessages()]);
+
         const data = await fetchMessages();
         setMessages(data);
 
@@ -45,24 +48,32 @@ const MessagePage = () => {
     acc[msg.from].push(msg);
     return acc;
   }, {} as Record<string, Message[]>);
+const handleSendEmail = async (email: {
+  to: string; 
+  subject: string;
+  body: string;
+  attachments: File[];
+}) => {
+  try {
+    // Convert comma-separated string to string[]
+    const recipientArray = email.to.split(",").map(addr => addr.trim());
 
-  const handleSendEmail = async (email: {
-    to: string;
-    subject: string;
-    body: string;
-    attachments: File[];
-  }) => {
-    try {
-      await sendEmailViaGmail(email);
-      alert("Email sent!");
-      setShowNewCompose(false);
-      const data = await fetchMessages();
-      setMessages(data);
-    } catch (err) {
-      console.error("Error sending email:", err);
-      alert("Failed to send email.");
-    }
-  };
+    await sendEmailViaGmail({
+      to: recipientArray,
+      subject: email.subject,
+      body: email.body,
+      attachments: email.attachments,
+    });
+
+    alert("Email sent!");
+    setShowNewCompose(false);
+    const data = await fetchMessages();
+    setMessages(data);
+  } catch (err) {
+    console.error("Error sending email:", err);
+    alert("Failed to send email.");
+  }
+};
 
   const handleReplyEmail = async (email: {
     to: string;
@@ -95,7 +106,7 @@ const MessagePage = () => {
 
   const handleDeleteMessage = async (threadId: string) => {
     try {
-      await deleteMessage(threadId, true); // Pass threadId and flag
+      await deleteMessage(threadId, true);
       setMessages((prev) => prev.filter((msg) => msg.threadId !== threadId));
       alert("Conversation deleted successfully.");
     } catch (err) {
