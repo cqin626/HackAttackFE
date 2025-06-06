@@ -102,33 +102,36 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         >
           <Messages messages={threadMessages} />
         </div>
+          <div
+            className="border-top pt-3 flex-shrink-0"
+            style={{ boxSizing: "border-box", padding: "0 1rem" }}
+          >
+<div className="d-flex align-items-stretch gap-2 mb-2">
+  <textarea
+    className="form-control"
+    placeholder="Write your reply..."
+    value={replyBody}
+    onChange={(e) => setReplyBody(e.target.value)}
+    style={{ resize: "none", flexGrow: 1 }}
+  />
+  <button
+    className="btn btn-primary"
+    onClick={handleSendReply}
+  >
+    Send
+  </button>
+</div>
 
-        <div
-          className="border-top pt-3 flex-shrink-0 d-flex flex-column"
-          style={{ maxHeight: "150px", boxSizing: "border-box", padding: "0 1rem" }}
-        >
-          <textarea
-            className="form-control mb-2 flex-grow-1"
-            rows={3}
-            placeholder="Write your reply..."
-            value={replyBody}
-            onChange={(e) => setReplyBody(e.target.value)}
-            style={{ resize: "none" }}
-          />
-          <input
-            type="file"
-            multiple
-            onChange={(e) =>
-              setReplyAttachments(e.target.files ? Array.from(e.target.files) : [])
-            }
-            className="form-control mb-2"
-          />
-          <div className="d-flex justify-content-end">
-            <button className="btn btn-primary" onClick={handleSendReply}>
-              Send
-            </button>
+
+            <input
+              type="file"
+              multiple
+              onChange={(e) =>
+                setReplyAttachments(e.target.files ? Array.from(e.target.files) : [])
+              }
+              className="form-control"
+            />
           </div>
-        </div>
       </div>
     );
   }

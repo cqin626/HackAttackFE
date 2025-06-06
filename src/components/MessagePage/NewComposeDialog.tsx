@@ -19,6 +19,13 @@ const NewComposeDialog: React.FC<NewComposeDialogProps> = ({
   const [body, setBody] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
 
+  const resetForm = () => {
+    setTo("");
+    setSubject("");
+    setBody("");
+    setAttachments([]);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setAttachments(Array.from(e.target.files));
@@ -31,6 +38,12 @@ const NewComposeDialog: React.FC<NewComposeDialogProps> = ({
       return;
     }
     onSend({ to, subject, body, attachments });
+    resetForm();
+    onClose();
+  };
+
+  const handleClose = () => {
+    resetForm();
     onClose();
   };
 
@@ -45,23 +58,27 @@ const NewComposeDialog: React.FC<NewComposeDialogProps> = ({
       <div className="modal-dialog modal-dialog-centered" role="document">
         <div className="modal-content">
           <div className="modal-header d-flex justify-content-between align-items-center">
-              <h5 className="modal-title">Compose New Email</h5>
-              <button
-                type="button"
-                className="close"
-                aria-label="Close"
-                onClick={() => {
-                  setTo("");
-                  setSubject("");
-                  setBody("");
-                  setAttachments([]);
-                  onClose();
-                }}
-                style={{ color: "red", fontWeight: "bold", fontSize: "1.5rem" }}
-              >
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
+            <h5 className="modal-title">Compose New Email</h5>
+            <button
+              type="button"
+              aria-label="Close"
+              onClick={handleClose}
+              style={{
+                color: "red",
+                fontWeight: "bold",
+                fontSize: "1.5rem",
+                outline: "none",
+                boxShadow: "none",
+                border: "none",
+                background: "transparent",
+                padding: 0,
+                lineHeight: 1,
+                cursor: "pointer"
+              }}
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
 
           <div className="modal-body">
             <input
@@ -70,9 +87,7 @@ const NewComposeDialog: React.FC<NewComposeDialogProps> = ({
               className="form-control mb-3"
               value={to}
               onChange={(e) => setTo(e.target.value)}
-              multiple={false} // Keep this false because this is a text input for emails, not a file input
             />
-
             <input
               type="text"
               placeholder="Subject"
@@ -96,24 +111,10 @@ const NewComposeDialog: React.FC<NewComposeDialogProps> = ({
           </div>
 
           <div className="modal-footer">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => {
-                setTo("");
-                setSubject("");
-                setBody("");
-                setAttachments([]);
-                onClose();
-              }}
-            >
+            <button type="button" className="btn btn-secondary" onClick={handleClose}>
               Close
             </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleSubmit}
-            >
+            <button type="button" className="btn btn-primary" onClick={handleSubmit}>
               Send
             </button>
           </div>

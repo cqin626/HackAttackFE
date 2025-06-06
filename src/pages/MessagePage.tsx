@@ -31,8 +31,6 @@ const MessagePage = () => {
         const data = await fetchMessages();
         setMessages(data);
 
-        const uniqueSenders = [...new Set(data.map((msg) => msg.from))];
-        setSelectedSender(uniqueSenders[0] || null);
       } catch (err) {
         console.error("Error syncing or fetching messages:", err);
       } finally {
@@ -142,21 +140,28 @@ const handleSendEmail = async (email: {
             <div className="border-end p-3" style={{ width: "30%", overflowY: "auto" }}>
               {Object.keys(groupedBySender)
                 .sort()
-                .map((sender) => (
-                  <div
-                    key={sender}
-                    className={`p-2 rounded mb-2 ${
-                      selectedSender === sender ? "bg-primary text-white" : "bg-light"
-                    }`}
-                    style={{ cursor: "pointer" }}
-                    onClick={() => {
-                      setSelectedSender(sender);
-                      setSelectedThreadId(null);
-                    }}
-                  >
-                    {sender}
-                  </div>
-                ))}
+                .map((sender) => {
+                  const match = sender.match(/^(.*)\s<(.+)>$/); // Extract name and email
+                  const name = match?.[1] ?? sender;
+                  const email = match?.[2] ?? "";
+
+                  return (
+                    <div
+                      key={sender}
+                      className={`p-2 rounded mb-2 ${
+                        selectedSender === sender ? "bg-primary text-white" : "bg-light"
+                      }`}
+                      style={{ cursor: "pointer" }}
+                      onClick={() => {
+                        setSelectedSender(sender);
+                        setSelectedThreadId(null);
+                      }}
+                    >
+                      <div className="fw-semibold">{name}</div>
+                      <div className="text-muted" style={{ fontSize: "0.9em" }}>{email}</div>
+                    </div>
+                  );
+                })}
             </div>
 
             {/* Right Panel: Delegate to MessageViewer */}
@@ -164,15 +169,21 @@ const handleSendEmail = async (email: {
               className="p-3 flex-grow-1"
               style={{ height: "75vh", display: "flex", flexDirection: "column" }}
             >
-              <MessageViewer
-                messages={messages}
-                selectedSender={selectedSender}
-                selectedThreadId={selectedThreadId}
-                onThreadSelect={setSelectedThreadId}
-                onBackToThreads={() => setSelectedThreadId(null)}
-                onReply={handleReplyEmail}
-                onDelete={handleDeleteMessage}
-              />
+             {selectedSender ? (
+                <MessageViewer
+                  messages={messages}
+                  selectedSender={selectedSender}
+                  selectedThreadId={selectedThreadId}
+                  onThreadSelect={setSelectedThreadId}
+                  onBackToThreads={() => setSelectedThreadId(null)}
+                  onReply={handleReplyEmail}
+                  onDelete={handleDeleteMessage}
+                />
+              ) : (
+                <div className="d-flex justify-content-center align-items-center h-100 text-muted">
+                  <p>Please select a candidate on the left to view messages.</p>
+                </div>
+              )}
             </div>
           </div>
         )}
