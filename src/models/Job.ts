@@ -1,5 +1,5 @@
-export interface Job {
-  _id: string;
+export interface JobType {
+  _id?: string;
   title: string;
   employmentType: 'Full-Time' | 'Part-Time' | 'Contract' | 'Internship';
   description: string;
@@ -10,5 +10,5 @@ export interface Job {
     currency: string;
   };
   status: 'Open' | 'Closed' | 'Paused';
-  createdAt: string;  
+  createdAt?: string;  
 }
