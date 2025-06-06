@@ -1,29 +1,40 @@
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import toast from "react-hot-toast";
+import { Modal as BSModal } from "bootstrap";
+
 import ColumnContainer from "./ColumnContainer";
+import Modal from "../../Modal";
+import FilterConfigurationForm from "../FilterConfigurationForm";
+import ScheduleForm from "../ScheduleForm";
+
+import type { JobType } from "../../../models/Job";
 import type { ApplicationType } from "../../../models/Application";
+import type { ResumeFilterCondition } from "../../../models/ResumeFilter";
+import type { AxiosError } from "axios";
+
 import {
   getApplicantsByJobId,
   sendVerificationRequest,
 } from "../../../services/applicationService";
-import { useCallback, useEffect, useState, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import {
+  upsertResumeFilter,
+  getResumeFilterByJobId,
+} from "../../../services/resumeFilterService";
 import {
   getApplicantsByStatus,
   getJobApplicantsJSON,
 } from "../../../utils/applicationUtil";
-import toast from "react-hot-toast";
-import Modal from "../../Modal";
-import ScheduleForm from "../ScheduleForm";
-import type { JobType } from "../../../models/Job";
 
 type KanbanBoardProps = {
-  job: JobType
+  job: JobType;
 };
-import { Modal as BSModal } from "bootstrap";
 
 const KanbanBoard = ({ job }: KanbanBoardProps) => {
   const { id } = useParams();
-  const columns = ["Applied", "Screened", "Verified", "Interview Scheduled"];
   const [candidates, setCandidates] = useState<ApplicationType[]>([]);
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [conditions, setConditions] = useState<ResumeFilterCondition[]>([]);
 
   const [verificationModal, setVerificationModal] = useState<{
     show: boolean;
@@ -36,21 +47,47 @@ const KanbanBoard = ({ job }: KanbanBoardProps) => {
     message: "",
     isSuccess: true,
   });
-  const [verifiedCandidateEmails, setVerifiedCandidateEmails] = useState<string[]>([]);
+
+  const [verifiedCandidateEmails, setVerifiedCandidateEmails] = useState<
+    string[]
+  >([]);
 
   useEffect(() => {
-    if (id) {
-      getApplicantsByJobId(id)
-        .then((data) => setCandidates(data.applicants))
-        .catch((err) => {
-          const message = err?.message || "An unexpected error occurred";
-          toast.error("Error loading applicants: " + message);
-        });
-    }
+    if (!id) return;
+
+    const loadData = async () => {
+      try {
+        const applicantData = await getApplicantsByJobId(id);
+        setCandidates(applicantData.applicants);
+      } catch (err) {
+        toast.error(
+          "Error loading applicants: " + ((err as Error)?.message || "")
+        );
+      }
+
+      try {
+        const filterData = await getResumeFilterByJobId(id);
+        const loaded =
+          filterData?.data?.conditions?.length > 0
+            ? filterData.data.conditions
+            : [{ field: "", requirement: "", interpretedByLLM: "" }];
+        setConditions(loaded);
+      } catch (error) {
+        const err = error as AxiosError;
+        setConditions([{ field: "", requirement: "", interpretedByLLM: "" }]);
+        if (err.response?.status === 404) {
+          toast("Resume filter not found.");
+        } else {
+          toast.error("Failed to load filters.");
+        }
+      }
+    };
+
+    loadData();
   }, [id]);
 
   const groupedCandidates = useMemo(() => {
-    return candidates.reduce<Record<string, typeof candidates>>(
+    return candidates.reduce<Record<string, ApplicationType[]>>(
       (acc, candidate) => {
         const status = candidate.status.toLowerCase();
         if (!acc[status]) acc[status] = [];
@@ -61,21 +98,31 @@ const KanbanBoard = ({ job }: KanbanBoardProps) => {
     );
   }, [candidates]);
 
-  const getCandidateEmailsByStatus = useCallback((status: string): string[] => {
-    const candidates = groupedCandidates[status.toLowerCase()] || [];
-    return candidates
-      .map((candidate) => candidate.applicant?.email)
-      .filter((email): email is string => Boolean(email));
-  }, [groupedCandidates]);
+  const getCandidateEmailsByStatus = useCallback(
+    (status: string): string[] => {
+      const candidates = groupedCandidates[status.toLowerCase()] || [];
+      return candidates
+        .map((candidate) => candidate.applicant?.email)
+        .filter((email): email is string => Boolean(email));
+    },
+    [groupedCandidates]
+  );
 
   useEffect(() => {
     const verifiedEmails = getCandidateEmailsByStatus("verified");
     setVerifiedCandidateEmails(verifiedEmails);
   }, [groupedCandidates, getCandidateEmailsByStatus]);
 
+  const columns = [
+    "Applied",
+    "Screened",
+    "Verified",
+    "Interview Scheduled",
+  ] as const;
+  type ColumnKey = (typeof columns)[number];
 
   const columnConfigs: Record<
-    string,
+    ColumnKey,
     {
       buttonText: string;
       onClick: () => void;
@@ -86,17 +133,18 @@ const KanbanBoard = ({ job }: KanbanBoardProps) => {
   > = {
     Applied: {
       buttonText: "Filter",
-      onClick: () => console.log("Filtering Applied Candidates"),
+      onClick: () => {
+        toast.success("Filter logic not yet implemented");
+      },
       icon: "bi-funnel",
       color: "primary",
     },
-      Screened: {
+    Screened: {
       buttonText: "Verify",
       onClick: async () => {
         const applicants = getApplicantsByStatus(candidates, "screened");
 
         if (applicants.length === 0) {
-          // Show modal with no verification message
           setVerificationModal({
             show: true,
             title: "No Verification Sent",
@@ -104,12 +152,14 @@ const KanbanBoard = ({ job }: KanbanBoardProps) => {
             isSuccess: false,
           });
 
-          const modalElement = document.getElementById("verificationResultModal");
+          const modalElement = document.getElementById(
+            "verificationResultModal"
+          );
           if (modalElement) {
             const modal = new BSModal(modalElement);
             modal.show();
           }
-          return; // exit early
+          return;
         }
 
         const json = getJobApplicantsJSON(applicants, id ?? "");
@@ -124,7 +174,9 @@ const KanbanBoard = ({ job }: KanbanBoardProps) => {
             isSuccess: true,
           });
 
-          const modalElement = document.getElementById("verificationResultModal");
+          const modalElement = document.getElementById(
+            "verificationResultModal"
+          );
           if (modalElement) {
             const modal = new BSModal(modalElement);
             modal.show();
@@ -137,7 +189,9 @@ const KanbanBoard = ({ job }: KanbanBoardProps) => {
             isSuccess: false,
           });
 
-          const modalElement = document.getElementById("verificationResultModal");
+          const modalElement = document.getElementById(
+            "verificationResultModal"
+          );
           if (modalElement) {
             const modal = new BSModal(modalElement);
             modal.show();
@@ -147,18 +201,16 @@ const KanbanBoard = ({ job }: KanbanBoardProps) => {
       icon: "bi-check-circle",
       color: "info",
     },
-
     Verified: {
       buttonText: "Schedule Interview",
-      onClick: () => {
-      },
+      onClick: () => {}, // Handled via modal
       icon: "bi-calendar-event",
       color: "success",
-      modalTarget: "#scheduleInterviewBtn"
+      modalTarget: "#scheduleInterviewBtn",
     },
     "Interview Scheduled": {
       buttonText: "Mark Interviewed",
-      onClick: () => console.log("Rescheduling Interview"),
+      onClick: () => toast.success("Marked Interviewed"),
       icon: "bi-check2-all",
       color: "warning",
     },
@@ -215,19 +267,43 @@ const KanbanBoard = ({ job }: KanbanBoardProps) => {
         id="filterConfigurationModal"
         title="Filter Configuration"
         btnText="Save"
-        onConfirm={() => {
-          console.log("Test");
+        onConfirm={async () => {
+          if (!id) return;
+          try {
+            const filterToSave = { jobId: id, conditions };
+            await upsertResumeFilter(filterToSave);
+            toast.success("Filter saved successfully!");
+          } catch (error) {
+            toast.error("Failed to save filter: " + (error as Error).message);
+          }
         }}
+        btnText2="Evaluate"
+        onConfirm2={async () => {
+          setIsEvaluating(true);
+          try {
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            toast.success("Evaluation complete");
+          } finally {
+            setIsEvaluating(false);
+          }
+        }}
+        loading2={isEvaluating}
       >
-        <p className="mb-0">Test</p>
+        <FilterConfigurationForm
+          conditions={conditions}
+          setConditions={setConditions}
+        />
       </Modal>
+
       <Modal
         id="scheduleInterviewBtn"
         title="Schedule Group Interview"
         showFooter={false}
       >
-        {/* Modal content goes here */}
-        <ScheduleForm job={job} verifiedCandidateEmails={verifiedCandidateEmails}></ScheduleForm>
+        <ScheduleForm
+          job={job}
+          verifiedCandidateEmails={verifiedCandidateEmails}
+        />
       </Modal>
 
       <Modal
@@ -252,7 +328,6 @@ const KanbanBoard = ({ job }: KanbanBoardProps) => {
           }
         `}</style>
       </Modal>
-
     </>
   );
 };
