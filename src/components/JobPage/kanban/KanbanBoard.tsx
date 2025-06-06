@@ -20,6 +20,7 @@ import {
 import {
   upsertResumeFilter,
   getResumeFilterByJobId,
+  refineResumeFilter,
 } from "../../../services/resumeFilterService";
 import {
   getApplicantsByStatus,
@@ -277,12 +278,31 @@ const KanbanBoard = ({ job }: KanbanBoardProps) => {
             toast.error("Failed to save filter: " + (error as Error).message);
           }
         }}
-        btnText2="Evaluate"
+        btnText2="Refine"
         onConfirm2={async () => {
+          if (!id) return;
+
           setIsEvaluating(true);
           try {
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-            toast.success("Evaluation complete");
+            const refinedFilter = await refineResumeFilter(conditions);
+
+            setConditions(
+              Array.isArray(refinedFilter?.data)
+                ? refinedFilter.data.map(
+                    (item: {
+                      property: string;
+                      matching_condition: string;
+                      llm_interpretation: string;
+                    }) => ({
+                      field: item.property || "",
+                      requirement: item.matching_condition || "",
+                      interpretedByLLM: item.llm_interpretation || "",
+                    })
+                  )
+                : []
+            );
+
+            toast.success("Refinement complete");
           } finally {
             setIsEvaluating(false);
           }
