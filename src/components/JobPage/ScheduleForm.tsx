@@ -99,12 +99,12 @@ export default function ScheduleForm({ job, verifiedCandidateEmails }: ScheduleF
       await createEvent(payload);
       toast.success("Event created!");
 
-      setFormData((prev) => ({
+      setFormData(() => ({
         summary: "",
         description: "",
         start: "",
         end: "",
-        email: prev.email, // optionally keep for reuse
+        email: "",
       }));
     } catch (err) {
       setError("Failed to create event: " + err);
@@ -156,6 +156,7 @@ export default function ScheduleForm({ job, verifiedCandidateEmails }: ScheduleF
               className="form-control"
               id="start"
               name="start"
+              value={formData.start}
               onChange={handleChange}
             />
           </div>
@@ -168,6 +169,7 @@ export default function ScheduleForm({ job, verifiedCandidateEmails }: ScheduleF
               className="form-control"
               id="end"
               name="end"
+              value={formData.end}
               onChange={handleChange}
             />
           </div>
@@ -185,7 +187,6 @@ export default function ScheduleForm({ job, verifiedCandidateEmails }: ScheduleF
               placeholder="Enter Email"
             />
           </div>
-          <button type="submit" hidden></button>
 
           <button
             onClick={handleCreate}
