@@ -21,6 +21,9 @@ const ColumnContainer: React.FC<ColumnContainerProps> = ({
   color = 'primary',
   modalTarget
 }) => {
+  // Check if this is the verified column
+  const isVerifiedColumn = column.toLowerCase() === 'verified';
+
   return (
     <div className="card border-0 shadow-sm h-100">
       <div className={`card-header bg-${color} bg-opacity-10 d-flex align-items-center justify-content-between py-3`}>
@@ -37,7 +40,11 @@ const ColumnContainer: React.FC<ColumnContainerProps> = ({
                 key={applications.applicant._id}
                 className="candidate-card p-3 border-bottom hover-shadow transition-all"
                 style={{ cursor: 'pointer' }}
-              ><CandidateCard applications={applications}></CandidateCard>
+              >
+                <CandidateCard 
+                  applications={applications} 
+                  isVerified={isVerifiedColumn}
+                />
               </div>
             ))}
           </div>

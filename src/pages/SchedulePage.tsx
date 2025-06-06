@@ -6,12 +6,15 @@ import Spinner from "../components/Spinner";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { getHrEmail } from "../services/hrService";
+import "../assets/styles/schedulePage.css";
 
 export default function CalendarTestPage() {
   const [events, setEvents] = useState<EventType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [hrEmail, setHrEmail] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar');
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   useEffect(() => {
     getHrEmail()
@@ -66,36 +69,300 @@ export default function CalendarTestPage() {
     }
   }, [hrEmail, fetchEvents]);
 
+  // Helper functions for calendar view
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const getPreviousMonthDays = (date: Date) => {
+    const prevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 0);
+    return prevMonth.getDate();
+  };
+
+  const getEventsForDate = (date: Date) => {
+    return events.filter(event => {
+      const eventDate = new Date(event.start);
+      return eventDate.toDateString() === date.toDateString();
+    });
+  };
+
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      if (direction === 'prev') {
+        newDate.setMonth(prev.getMonth() - 1);
+      } else {
+        newDate.setMonth(prev.getMonth() + 1);
+      }
+      return newDate;
+    });
+  };
+
+  const renderCalendarView = () => {
+    const daysInMonth = getDaysInMonth(currentDate);
+    const firstDay = getFirstDayOfMonth(currentDate);
+    const prevMonthDays = getPreviousMonthDays(currentDate);
+    const days = [];
+    const today = new Date();
+
+    // Previous month's trailing days
+    for (let i = firstDay - 1; i >= 0; i--) {
+      const day = prevMonthDays - i;
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, day);
+      const dayEvents = getEventsForDate(date);
+
+      days.push(
+        <div key={`prev-${day}`} className="calendar-day other-month">
+          <div className="day-number">{day}</div>
+          <div className="day-events">
+            {dayEvents.slice(0, 3).map((event, index) => (
+              <div key={index} className="event-item">
+                <div className="event-time">{formatTime(event.start)}</div>
+                <div className="event-title" title={event.summary}>
+                  {event.summary}
+                </div>
+              </div>
+            ))}
+            {dayEvents.length > 3 && (
+              <div className="more-events">+{dayEvents.length - 3} more</div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Current month days
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+      const dayEvents = getEventsForDate(date);
+      const isToday = date.toDateString() === today.toDateString();
+
+      days.push(
+        <div key={day} className={`calendar-day current-month ${isToday ? 'today' : ''}`}>
+          <div className="day-number">{day}</div>
+          <div className="day-events">
+            {dayEvents.slice(0, 3).map((event, index) => (
+              <div key={index} className="event-item">
+                <div className="event-time">{formatTime(event.start)}</div>
+                <div className="event-title" title={event.summary}>
+                  {event.summary}
+                </div>
+              </div>
+            ))}
+            {dayEvents.length > 3 && (
+              <div className="more-events">+{dayEvents.length - 3} more</div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Next month's leading days to complete the grid (42 cells = 6 weeks)
+    const totalCells = 42;
+    const remainingCells = totalCells - days.length;
+    
+    for (let day = 1; day <= remainingCells; day++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, day);
+      const dayEvents = getEventsForDate(date);
+
+      days.push(
+        <div key={`next-${day}`} className="calendar-day other-month">
+          <div className="day-number">{day}</div>
+          <div className="day-events">
+            {dayEvents.slice(0, 3).map((event, index) => (
+              <div key={index} className="event-item">
+                <div className="event-time">{formatTime(event.start)}</div>
+                <div className="event-title" title={event.summary}>
+                  {event.summary}
+                </div>
+              </div>
+            ))}
+            {dayEvents.length > 3 && (
+              <div className="more-events">+{dayEvents.length - 3} more</div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    return days;
+  };
+
+  const renderListView = () => {
+    const sortedEvents = [...events].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+    
+    return (
+      <div className="events-list">
+        {sortedEvents.map((event, index) => (
+          <div key={index} className="event-card card mb-3 border-0 shadow-sm">
+            <div className="card-body">
+              <div className="row align-items-center">
+                <div className="col-md-8">
+                  <h5 className="card-title mb-2 text-primary">
+                    <i className="bi bi-calendar-event me-2"></i>
+                    {event.summary}
+                  </h5>
+                  <div className="mb-2">
+                    <i className="bi bi-clock me-2 text-secondary"></i>
+                    <span className="fw-medium">
+                      {new Date(event.start).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                  <div className="mb-2">
+                    <i className="bi bi-hourglass-split me-2 text-secondary"></i>
+                    <span>
+                      {formatTime(event.start)} - {formatTime(event.end)}
+                    </span>
+                  </div>
+                </div>
+                <div className="col-md-4">
+                  <div className="attendees-section">
+                    <div className="mb-2">
+                      <i className="bi bi-people me-2 text-secondary"></i>
+                      <span className="fw-medium">Attendees:</span>
+                    </div>
+                    <div className="attendees-list">
+                      {event.attendees?.map((attendee: AttendeeType, i: number) => (
+                        <div key={i} className="attendee-item mb-1">
+                          <span className="badge bg-light text-dark me-2">
+                            {attendee.email}
+                          </span>
+                          <span className={`badge ${
+                            attendee.status === 'accepted' ? 'bg-success' :
+                            attendee.status === 'declined' ? 'bg-danger' :
+                            attendee.status === 'tentative' ? 'bg-warning' :
+                            'bg-secondary'
+                          }`}>
+                            {attendee.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <>
       <Navbar />
-      <div className="p-4">
-        <h1 className="text-xl font-bold mb-4">All Events</h1>
-        <p>{hrEmail}</p>
-        {/* Events section */}
-        {loading ? (
-          <div className="container py-5">
-            <Spinner message="Loading events..." />
+      {loading ? (
+        <div className="container py-5">
+          <Spinner message="Loading events..." />
+        </div>
+      ) : (
+        <div className="container-fluid py-4 px-4 bg-light min-vh-100">
+          <div className="card border-0 shadow-sm">
+            <div className="card-body">
+              {/* Header */}
+              <div className="section-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+                <h2 className="card-title mb-3 mb-md-0">
+                  <i className="bi bi-calendar3 me-2 text-primary"></i>
+                  Interview Schedule
+                </h2>
+                <div className="d-flex flex-column flex-md-row gap-2 align-items-center">
+                  <div className="text-muted small">
+                    <i className="bi bi-person-circle me-1"></i>
+                    {hrEmail}
+                  </div>
+                  <div className="btn-group" role="group">
+                    <button
+                      type="button"
+                      className={`btn btn-sm ${viewMode === 'calendar' ? 'btn-primary' : 'btn-outline-primary'}`}
+                      onClick={() => setViewMode('calendar')}
+                    >
+                      <i className="bi bi-calendar3 me-1"></i>
+                      Calendar
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn btn-sm ${viewMode === 'list' ? 'btn-primary' : 'btn-outline-primary'}`}
+                      onClick={() => setViewMode('list')}
+                    >
+                      <i className="bi bi-list-ul me-1"></i>
+                      List
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Calendar Navigation (only show in calendar view) */}
+              {viewMode === 'calendar' && (
+                <div className="calendar-navigation d-flex justify-content-between align-items-center mb-4">
+                  <button 
+                    className="btn btn-outline-primary btn-sm"
+                    onClick={() => navigateMonth('prev')}
+                  >
+                    <i className="bi bi-chevron-left"></i>
+                  </button>
+                  <h3 className="mb-0 fw-bold text-primary">
+                    {currentDate.toLocaleDateString('en-US', { 
+                      month: 'long', 
+                      year: 'numeric' 
+                    })}
+                  </h3>
+                  <button 
+                    className="btn btn-outline-primary btn-sm"
+                    onClick={() => navigateMonth('next')}
+                  >
+                    <i className="bi bi-chevron-right"></i>
+                  </button>
+                </div>
+              )}
+
+              {/* Content */}
+              {events.length === 0 ? (
+                <div className="text-center py-5">
+                  <div className="d-flex flex-column align-items-center">
+                    <i className="bi bi-calendar-x text-secondary mb-3" style={{ fontSize: "3rem" }}></i>
+                    <h4 className="text-secondary mb-2">No Events Scheduled</h4>
+                    <p className="text-muted">Your interview schedule is currently empty.</p>
+                  </div>
+                </div>
+              ) : viewMode === 'calendar' ? (
+                <div className="calendar-view">
+                  {/* Calendar Header */}
+                  <div className="calendar-header row mb-2">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                      <div key={day} className="col text-center fw-bold text-secondary py-2">
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+                  {/* Calendar Grid */}
+                  <div className="calendar-grid row g-1">
+                    {renderCalendarView()}
+                  </div>
+                </div>
+              ) : (
+                renderListView()
+              )}
+            </div>
           </div>
-        ) : (
-          <table className="table table-hover mb-0">
-            <tbody>
-              {events.map((event, i) => (
-                <tr key={i}>
-                  <td className="border p-2">
-                    <div><strong>{event.summary}</strong></div>
-                    <            div>Start: {new Date(event.start).toLocaleString()}</div>
-                    <div>End: {new Date(event.end).toLocaleString()}</div>
-                    <div>
-                      Attendees: {event.attendees?.map((a: AttendeeType) => `${a.email} (${a.status})`).join(", ")}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 }

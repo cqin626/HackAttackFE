@@ -35,3 +35,15 @@ export async function sendVerificationRequest(payload: {
     throw error;
   }
 }
+
+export const updateApplicationStatus = async (applicantId: string, jobId: string, status: string) => {
+  try {
+    const response = await api.put(`/applications/update-status/${applicantId}/${jobId}`, {
+      status,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update application status:", error);
+    throw error;
+  }
+};

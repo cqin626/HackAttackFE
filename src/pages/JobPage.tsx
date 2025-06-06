@@ -101,7 +101,11 @@ const JobPage = () => {
                     <i className="bi bi-calendar-date me-1 text-primary"></i>
                     <span>
                       Posted:{" "}
-                      {new Date(job.createdAt ?? "").toLocaleDateString()}
+                      {new Date(job.createdAt ?? "").toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
                     </span>
                   </div>
                 </div>
