@@ -5,6 +5,9 @@ interface ModalProps {
   onConfirm?: () => void;
   btnText?: string;
   showFooter?: boolean;
+  onConfirm2?: () => void;
+  btnText2?: string;
+  loading2?: boolean;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -14,19 +17,32 @@ const Modal: React.FC<ModalProps> = ({
   btnText = "Save",
   onConfirm,
   showFooter = true,
+  onConfirm2,
+  btnText2,
+  loading2 = false,
 }) => {
+  const ButtonSpinner = () => {
+    return (
+      <div
+        className="spinner-border spinner-border-sm"
+        role="status"
+        style={{ width: "1rem", height: "1rem" }}
+      >
+        <span className="visually-hidden">Loading...</span>
+      </div>
+    );
+  };
+
   return (
     <div
       className="modal fade"
       id={id}
       tabIndex={-1}
       aria-labelledby={`${id}Label`}
-      aria-hidden="true"
     >
       <div className="modal-dialog modal-dialog-centered modal-lg">
         <div className="modal-content">
-
-          {/* header */}
+          {/* Header */}
           <div className="modal-header">
             <h5 className="modal-title" id={`${id}Label`}>
               {title}
@@ -39,10 +55,10 @@ const Modal: React.FC<ModalProps> = ({
             ></button>
           </div>
 
-          {/* content */}
+          {/* Body */}
           <div className="modal-body p-4">{children}</div>
 
-          {/* footer */}
+          {/* Footer */}
           {showFooter && (
             <div className="modal-footer">
               <button
@@ -52,6 +68,20 @@ const Modal: React.FC<ModalProps> = ({
               >
                 Cancel
               </button>
+
+              {onConfirm2 && btnText2 && (
+                <button
+                  type="button"
+                  aria-label="Close"
+                  className="btn d-inline-flex align-items-center justify-content-center btn-secondary"
+                  onClick={onConfirm2}
+                  disabled={loading2}
+                  style={{ minWidth: "80px", height: "38px" }}
+                >
+                  {loading2 ? <ButtonSpinner /> : btnText2}
+                </button>
+              )}
+
               {onConfirm && (
                 <button
                   type="button"
